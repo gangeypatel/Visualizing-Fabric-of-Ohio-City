@@ -9,13 +9,13 @@ var imgLocation = "img/BaseMap.png"
 document.addEventListener("DOMContentLoaded", async () => {
     await modifyData();
     addEventListeners();
-    drawBaseImageMap();
+    // drawBaseImageMap();
     drawCircleMap()
 });
 
 const getCSVdata = () =>
     Promise.all([
-        d3.json("data/merged_points.json"),
+        d3.json("data/merged_points_30000.json"),
     ]);
 
 async function modifyData() {
