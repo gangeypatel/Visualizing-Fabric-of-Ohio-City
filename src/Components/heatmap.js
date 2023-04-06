@@ -3,12 +3,14 @@ import { useEffect, useState } from "react";
 import imgLocation from '../img/BaseMap.png';
 import rawBaseMapVectorPoints from '../data/merged_points_10000.json';
 import rawParticipantsLocation from '../data/participants.json';
+import rawBuildingLocation from '../data/buildings.csv';
 
 function Heatmap() {
     let d3Lasso;
 
     const [geoJSONdata, setGeoJSONdata] = useState(rawBaseMapVectorPoints);
     const [participantsLocation, setParticipantsLocation] = useState([]);
+    const [buildingsLocation, setBuildingsLocation] = useState([]);
     const [availablebalance, setAvailablebalance] = useState({
         min: Number.MAX_VALUE,
         max: Number.MIN_VALUE
@@ -35,7 +37,9 @@ function Heatmap() {
     let zoom;
 
     useEffect(() => {
-        modifyParticipantsLocation();
+        (async () => {
+            await modifyLocations();
+        })();
         addEventListener();
     }, []);
 
@@ -43,11 +47,12 @@ function Heatmap() {
         calculateSVGDimentions();
         drawBaseImageMap();
         // drawBaseMapPoints();
+        drawBuildingLocation();
         drawParticipantsLocation();
         initLasso();
     }, [participantsLocation]);
 
-    function modifyParticipantsLocation() {
+    async function modifyLocations() {
         let maxAvailablebalance = 0, minAvailablebalance = Number.MAX_VALUE;
         let modifiedParticipantsLocation = rawParticipantsLocation.map(d => {
             const locationPointString = d.currentlocation;
@@ -88,6 +93,27 @@ function Heatmap() {
             x: imageDimentionScaleX(d.x),
             y: imageDimentionScaleY(d.y)
         }));
+
+        const rawBuildingLocationData = await d3.csv(rawBuildingLocation);
+        
+        const db = []
+        const modifiedBuildingLocation = rawBuildingLocationData.map(d => {
+            // d.location = POLYGON ((400.41017008252567 4426.631523990375, 400.6737114714055 4466.630655805157, 495.0955925249795 4466.008540460536, 494.83205113609966 4426.009408645754, 400.41017008252567 4426.631523990375))
+            // find centroid of polygon
+            const locationPointString = d.location;
+            const locationPointSplitted = locationPointString.split(" ");
+            // console.log(locationPointSplitted);
+            const x = parseFloat(locationPointSplitted[1].slice(2, -1));
+            const y = parseFloat(locationPointSplitted[2].slice(0, -1));
+
+            return {
+                ...d,
+                x: imageDimentionScaleX(x),
+                y: imageDimentionScaleY(y)
+            }
+        });
+
+        setBuildingsLocation(modifiedBuildingLocation);
 
         setParticipantsLocation(modifiedParticipantsLocation);
     }
@@ -162,6 +188,32 @@ function Heatmap() {
     
     }
 
+    function drawBuildingLocation() {
+        if (!svg) return;
+
+        const imageScaleX = d3.scaleLinear()
+            .domain([0, imageWidth])
+            .range([pointsRadius+10, width-pointsRadius]);
+        const imageScaleY = d3.scaleLinear()
+            .domain([0, imageHeight])
+            .range([pointsRadius, height-pointsRadius-8]);
+
+        svg.selectAll("circle.building").remove();
+
+        svg.selectAll("circle.building")
+            .data(buildingsLocation)
+            .enter()
+            .append("circle")
+            .attr("class", "building")
+            .attr("cx", d => imageScaleX(d.x))
+            .attr("cy", d => imageScaleY(d.y))
+            .attr("r", 2)
+            .attr("fill", "none")
+            .attr("stroke", "black")
+            .attr("stroke-width", 1)
+            .style("opacity", 0);
+    }
+
     function handleZooming(e) {
         svg.select("image").attr("transform", e.transform)
         svg.selectAll("circle")
@@ -215,9 +267,7 @@ function Heatmap() {
           .classed("not_possible",false)
           .classed("possible",false);
       d3Lasso.selectedItems()
-          .classed("selected",true)
-        //   .attr("r",5)
-            .style("opacity", 0.7);
+          .classed("selected", (d,i) => !d.hasOwnProperty("buildingId"));
     }
 
     function initLasso() {
@@ -227,7 +277,7 @@ function Heatmap() {
         .closePathDistance(305) 
         .closePathSelect(true) 
         .targetArea(svg)
-        .items(svg.selectAll("circle.participant")) 
+        .items(svg.selectAll("circle")) 
         .on("start",onLassoStart) 
         .on("draw",onLassoDraw) 
         .on("end",onLassoEnd); 
