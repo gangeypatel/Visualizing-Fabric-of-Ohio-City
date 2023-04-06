@@ -45,5 +45,6 @@ code {
 }
 
 .selected {
-fill: steelblue;
+fill: red;
+opacity: 1;
 }

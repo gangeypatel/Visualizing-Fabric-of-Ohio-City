@@ -1,62 +1,165 @@
 import { useEffect, useState } from "react";
 
 import imgLocation from '../img/BaseMap.png';
-import mergedPointsFile from '../data/merged_points_10000.json';
+import rawBaseMapVectorPoints from '../data/merged_points_10000.json';
+import rawParticipantsLocation from '../data/participants.json';
 
 function Heatmap() {
-    let d3,d3Lasso;
+    let d3Lasso;
 
-    const [geoJSONdata, setGeoJSONdata] = useState(mergedPointsFile);
+    const [geoJSONdata, setGeoJSONdata] = useState(rawBaseMapVectorPoints);
     const [participantsLocation, setParticipantsLocation] = useState([]);
-
-    var participantCoordinates = {}, pointCoordinates = {}
+    const [availablebalance, setAvailablebalance] = useState({
+        min: Number.MAX_VALUE,
+        max: Number.MIN_VALUE
+    });
+    const participantsMinMax= {
+            x: {
+                min: -4626,
+                max: 2636
+            },
+            y: {
+                min: 37,
+                max: 7852
+            }
+    };
 
     let width = 800, height = 650;
     const imageWidth = 1076;
     const imageHeight = 1144;
-    const pointsRadius = 2;
+    const pointsRadius = 3;
 
-    let svg;
+    const d3 = window.d3;
+    const svg = d3.select("svg").attr("width", width).attr("height", height);
+
+    let zoom;
 
     useEffect(() => {
-        d3 = window.d3;
-
-        svg = d3.select("svg").attr("width", width).attr("height", height);
+        modifyParticipantsLocation();
         addEventListener();
-        calculateSVGDimentions();
-        // drawBaseImageMap();
-        drawCircleMap();
-        initLasso();
     }, []);
 
+    useEffect(() => {
+        calculateSVGDimentions();
+        drawBaseImageMap();
+        // drawBaseMapPoints();
+        drawParticipantsLocation();
+        initLasso();
+    }, [participantsLocation]);
+
+    function modifyParticipantsLocation() {
+        let maxAvailablebalance = 0, minAvailablebalance = Number.MAX_VALUE;
+        let modifiedParticipantsLocation = rawParticipantsLocation.map(d => {
+            const locationPointString = d.currentlocation;
+            const locationPointSplitted = locationPointString.split(" ");
+            const x = parseFloat(locationPointSplitted[1].slice(1, -1));
+            const y = parseFloat(locationPointSplitted[2].slice(0, -1));
+            if (d.availablebalance > maxAvailablebalance) {
+                maxAvailablebalance = d.availablebalance;
+            }
+            if (d.availablebalance < minAvailablebalance) {
+                minAvailablebalance = d.availablebalance;
+            }
+
+            return {
+                ...d,
+                availablebalance: parseFloat(d.availablebalance),
+                x,
+                y
+            }
+        });
+
+        setAvailablebalance({
+            min: minAvailablebalance,
+            max: maxAvailablebalance
+        });
+
+        const imageDimentionScaleX = d3.scaleLinear()
+            .domain([participantsMinMax.x.min, participantsMinMax.x.max])
+            .range([0, imageWidth]);
+
+        const imageDimentionScaleY = d3.scaleLinear()
+            .domain([participantsMinMax.y.min, participantsMinMax.y.max])
+            .range([imageHeight, 0]);
+
+
+        modifiedParticipantsLocation = modifiedParticipantsLocation.map(d => ({
+            ...d,
+            x: imageDimentionScaleX(d.x),
+            y: imageDimentionScaleY(d.y)
+        }));
+
+        setParticipantsLocation(modifiedParticipantsLocation);
+    }
+
     function drawBaseImageMap() {
+        svg.select("#base_map").remove();
         svg.append("image")
-            .attr("width", width)
-            .attr("height", height)
+            .attr("id", "base_map")
             .attr("x", 0)
             .attr("y", 0)
+            .attr("width", width)
+            .attr("height", height)
             .attr("xlink:href", imgLocation)
     }
 
-    function drawCircleMap() {
+    function drawBaseMapPoints() {
         if (!svg) return;
-        const imageScale = d3.scaleLinear()
+
+        const imageScaleX = d3.scaleLinear()
             .domain([0, imageWidth])
             .range([0, width]);
         const imageScaleY = d3.scaleLinear()
             .domain([0, imageHeight])
             .range([0, height]);
+
         svg.selectAll("circle.map_points").remove();
         svg.selectAll("circle.map_points")
             .data(geoJSONdata)
             .enter()
             .append("circle")
             .attr("class", "map_points")
-            .attr("cx", d => imageScale(d[0]))
+            .attr("cx", d => imageScaleX(d[0]))
             .attr("cy", d => imageScaleY(d[1]))
             .attr("r", pointsRadius)
             .attr("fill", "green")
             .style("opacity", 0.5)
+        
+    }
+
+    function drawParticipantsLocation() {
+        if (!svg) return;
+
+        const imageScaleX = d3.scaleLinear()
+            .domain([0, imageWidth])
+            .range([pointsRadius+10, width-pointsRadius]);
+        const imageScaleY = d3.scaleLinear()
+            .domain([0, imageHeight])
+            .range([pointsRadius, height-pointsRadius-8]);
+
+        const heatMapColorScale =d3.scaleSequential()
+        .interpolator(d3.interpolateHcl("#fafa6e", "#2A4858"))
+            .domain([availablebalance.max, availablebalance.min])
+        
+        const sizeScale = d3.scaleLinear()
+            .domain([availablebalance.min, availablebalance.max])
+            .range([pointsRadius*0.2, pointsRadius*1]);
+
+        svg.selectAll("circle.participant").remove();
+
+        svg.selectAll("circle.participant")
+            .data(participantsLocation)
+            .enter()
+            .append("circle")
+            .attr("class", "participant")
+            .attr("cx", d => imageScaleX(d.x))
+            .attr("cy", d => imageScaleY(d.y))
+            .attr("r", d => sizeScale(d.availablebalance))
+            .attr("fill", d => heatMapColorScale(d.availablebalance))
+            .attr("stroke", "black")
+            .attr("stroke-width", 0.6)
+            .style("opacity", 0.5);
+    
     }
 
     function handleZooming(e) {
@@ -69,8 +172,11 @@ function Heatmap() {
         const windowWidth = window.innerWidth;
         const windowHeight = window.innerHeight;
 
-        width = windowWidth * 0.6;
+        width = windowWidth - 100;
         height = windowHeight - 100;
+
+        const svgWidthBasedOnImage = (height) * (imageWidth / imageHeight);
+        width = svgWidthBasedOnImage;
 
         svg.attr("width", width).attr("height", height);
     }
@@ -81,14 +187,18 @@ function Heatmap() {
         //     .on("zoom", handleZooming);
         // svg.call(zoom);
 
-        window.addEventListener("resize", () => {
-            calculateSVGDimentions()
-            drawCircleMap()
-        });
+        // window.addEventListener("resize", () => {
+        //     calculateSVGDimentions();
+        //     // drawBaseImageMap();
+        //     // drawBaseMapPoints();
+        //     drawParticipantsLocation()
+        // });
     }
 
     function onLassoStart() {
-        d3Lasso.items().attr("r",pointsRadius).classed("not_possible", true).classed("selected", false);
+        d3Lasso.items()
+        // .attr("r",pointsRadius)
+        .classed("not_possible", true).classed("selected", false)
     }
 
     function onLassoDraw() {
@@ -106,15 +216,18 @@ function Heatmap() {
           .classed("possible",false);
       d3Lasso.selectedItems()
           .classed("selected",true)
-          .attr("r",5);
+        //   .attr("r",5)
+            .style("opacity", 0.7);
     }
 
     function initLasso() {
+        if(d3Lasso != undefined) return;
+
         d3Lasso = d3.lasso()
         .closePathDistance(305) 
         .closePathSelect(true) 
         .targetArea(svg)
-        .items(svg.selectAll("circle.map_points")) 
+        .items(svg.selectAll("circle.participant")) 
         .on("start",onLassoStart) 
         .on("draw",onLassoDraw) 
         .on("end",onLassoEnd); 
