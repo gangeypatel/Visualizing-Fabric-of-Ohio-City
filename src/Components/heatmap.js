@@ -26,13 +26,17 @@ function Heatmap() {
             }
     };
 
-    let width = 800, height = 650;
+    const [svgDimention, setSvgDimention] = useState({
+        width: 800,
+        height: 650
+    })
+
     const imageWidth = 1076;
     const imageHeight = 1144;
     const pointsRadius = 3;
 
     const d3 = window.d3;
-    const svg = d3.select("svg").attr("width", width).attr("height", height);
+    const svg = d3.select("#heatmap_svg").attr("width", svgDimention.width).attr("height", svgDimention.height);
 
     let zoom;
 
@@ -124,8 +128,8 @@ function Heatmap() {
             .attr("id", "base_map")
             .attr("x", 0)
             .attr("y", 0)
-            .attr("width", width)
-            .attr("height", height)
+            .attr("width", svgDimention.width)
+            .attr("height", svgDimention.height)
             .attr("xlink:href", imgLocation)
     }
 
@@ -134,10 +138,10 @@ function Heatmap() {
 
         const imageScaleX = d3.scaleLinear()
             .domain([0, imageWidth])
-            .range([0, width]);
+            .range([0, svgDimention.width]);
         const imageScaleY = d3.scaleLinear()
             .domain([0, imageHeight])
-            .range([0, height]);
+            .range([0, svgDimention.height]);
 
         svg.selectAll("circle.map_points").remove();
         svg.selectAll("circle.map_points")
@@ -158,10 +162,10 @@ function Heatmap() {
 
         const imageScaleX = d3.scaleLinear()
             .domain([0, imageWidth])
-            .range([pointsRadius+10, width-pointsRadius]);
+            .range([pointsRadius+10, svgDimention.width-pointsRadius]);
         const imageScaleY = d3.scaleLinear()
             .domain([0, imageHeight])
-            .range([pointsRadius, height-pointsRadius-8]);
+            .range([pointsRadius, svgDimention.height-pointsRadius-8]);
 
         const heatMapColorScale =d3.scaleSequential()
         .interpolator(d3.interpolateHcl("#fafa6e", "#2A4858"))
@@ -193,10 +197,10 @@ function Heatmap() {
 
         const imageScaleX = d3.scaleLinear()
             .domain([0, imageWidth])
-            .range([pointsRadius+10, width-pointsRadius]);
+            .range([pointsRadius+10, svgDimention.width-pointsRadius]);
         const imageScaleY = d3.scaleLinear()
             .domain([0, imageHeight])
-            .range([pointsRadius, height-pointsRadius-8]);
+            .range([pointsRadius, svgDimention.height-pointsRadius-8]);
 
         svg.selectAll("circle.building").remove();
 
@@ -224,13 +228,14 @@ function Heatmap() {
         const windowWidth = window.innerWidth;
         const windowHeight = window.innerHeight;
 
-        width = windowWidth - 100;
-        height = windowHeight - 100;
+        const tempHeight = windowHeight - 100;
 
-        const svgWidthBasedOnImage = (height) * (imageWidth / imageHeight);
-        width = svgWidthBasedOnImage;
-
-        svg.attr("width", width).attr("height", height);
+        const svgWidthBasedOnImage = (tempHeight) * (imageWidth / imageHeight);
+        
+        setSvgDimention({
+            width: svgWidthBasedOnImage,
+            height: tempHeight
+        })
     }
 
     function addEventListener() {
@@ -287,7 +292,7 @@ function Heatmap() {
 
     return (
         <div className="flex items-center justify-center overflow-hidden">
-            <svg></svg>
+            <svg id="heatmap_svg" width={svgDimention.width} height={svgDimention.height}></svg>
         </div>
     );
 }

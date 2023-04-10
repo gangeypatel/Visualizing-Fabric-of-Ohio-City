@@ -1,3 +1,4 @@
+import Chord from "./chord";
 import Heatmap from "./heatmap";
 
 function Home() {
@@ -8,6 +9,7 @@ function Home() {
         <h3 className="h3">Heatmap -&gt; Chord Graph , Circular Packing Graph, Animated Scatter Plot -&gt; Bar, Pie CHart</h3>
     </div>
     <Heatmap />
+    {/* <Chord/> */}
     </>
   );
 }
