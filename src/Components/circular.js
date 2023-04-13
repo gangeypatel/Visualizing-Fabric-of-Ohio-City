@@ -5,9 +5,6 @@ import data from '../data/circularPacking.json';
 
 function Circular() {
     let d3, d3Lasso;
-
-
-    let x = useState();
     //var participantCoordinates = {}, pointCoordinates = {}
 
     let width = 800, height = 650;
@@ -15,21 +12,18 @@ function Circular() {
     // const imageHeight = 1144;
     // const pointsRadius = 2;
 
-    let svg, node, color,size;
+    let svg, node, color,size,x;
 
 
     function colorsize() {
-        x = d3.scaleOrdinal()
-            .domain([1, 2, 3])
-            .range([50, 200, 340])
-
+        
         color = d3.scaleOrdinal()
             .domain([1, 2, 3])
-            .range(["#F8766D", "#00BA38", "#619CFF"])
+            .range(["#bee9e8", "#cae9ff", "#5fa8d3"])
 
         size = d3.scaleLinear()
             .domain([0, 200])
-            .range([25, 60])
+            .range([25, 90])
     }
 
 
@@ -37,18 +31,22 @@ function Circular() {
         d3 = window.d3;
 
         svg = d3.select("svg").attr("width", width).attr("height", height);
+       
         // addEventListener();
         calculateSVGDimentions();
         // // drawBaseImageMap();
         colorsize();
         drawcircularmap();
-    }, x);
+    },[]);
 
     function drawcircularmap() {
+        x = d3.scaleOrdinal()
+        .domain([1, 2, 3])
+        .range([50, 200, 340])
 
         svg.selectAll("#circles").remove()
         colorsize();
-        node = svg.append("g")
+        node = svg
             .selectAll("circle")
             .data(data)
             .enter()
@@ -73,7 +71,7 @@ function Circular() {
             .force("y", d3.forceY().strength(0.1).y(width / 2))
             .force("center", d3.forceCenter().x(width / 2).y(height / 2))
             .force("charge", d3.forceManyBody().strength(.1))
-            .force("collide", d3.forceCollide().strength(.2).radius(function (d) { return (size(d['maxOccupancy'] * 2)) + 10 }).iterations(1))
+            .force("collide", d3.forceCollide().strength(.2).radius(function (d) { return (size(d['maxOccupancy']* 1.5)) }).iterations(1))
 
         simulation
                     .nodes(data)
@@ -83,17 +81,17 @@ function Circular() {
                             .attr("cy", function (d) { return d.y; })
                     });
 
-        function dragstarted(d) {
-            if (!d3.event.active) simulation.alphaTarget(.03).restart();
+        function dragstarted(event,d) {
+            if (!event.active) simulation.alphaTarget(.03).restart();
             d.fx = d.x;
             d.fy = d.y;
         }
-        function dragged(d) {
-            d.fx = d3.event.x;
-            d.fy = d3.event.y;
+        function dragged(event,d) {
+            d.fx = event.x;
+            d.fy = event.y;
         }
-        function dragended(d) {
-            if (!d3.event.active) simulation.alphaTarget(.03);
+        function dragended(event,d) {
+            if (!event.active) simulation.alphaTarget(.03);
             d.fx = null;
             d.fy = null;
         }
