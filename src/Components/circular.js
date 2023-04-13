@@ -1,69 +1,104 @@
 import { useEffect, useState } from "react";
 
 import imgLocation from '../img/BaseMap.png';
-import mergedPointsFile from '../data/merged_points_10000.json';
+import data from '../data/circularPacking.json';
 
 function Circular() {
-    let d3,d3Lasso;
+    let d3, d3Lasso;
 
-    const [geoJSONdata, setGeoJSONdata] = useState(mergedPointsFile);
-    const [participantsLocation, setParticipantsLocation] = useState([]);
 
-    var participantCoordinates = {}, pointCoordinates = {}
+    let x = useState();
+    //var participantCoordinates = {}, pointCoordinates = {}
 
     let width = 800, height = 650;
-    const imageWidth = 1076;
-    const imageHeight = 1144;
-    const pointsRadius = 2;
+    // const imageWidth = 1076;
+    // const imageHeight = 1144;
+    // const pointsRadius = 2;
 
-    let svg;
+    let svg, node, color,size;
+
+
+    function colorsize() {
+        x = d3.scaleOrdinal()
+            .domain([1, 2, 3])
+            .range([50, 200, 340])
+
+        color = d3.scaleOrdinal()
+            .domain([1, 2, 3])
+            .range(["#F8766D", "#00BA38", "#619CFF"])
+
+        size = d3.scaleLinear()
+            .domain([0, 200])
+            .range([25, 60])
+    }
+
 
     useEffect(() => {
         d3 = window.d3;
 
         svg = d3.select("svg").attr("width", width).attr("height", height);
         // addEventListener();
-        // calculateSVGDimentions();
+        calculateSVGDimentions();
         // // drawBaseImageMap();
-        // drawCircleMap();
-        // initLasso();
-    }, []);
+        colorsize();
+        drawcircularmap();
+    }, x);
 
-    function drawBaseImageMap() {
-        svg.append("image")
-            .attr("width", width)
-            .attr("height", height)
-            .attr("x", 0)
-            .attr("y", 0)
-            .attr("xlink:href", imgLocation)
+    function drawcircularmap() {
+
+        svg.selectAll("#circles").remove()
+        colorsize();
+        node = svg.append("g")
+            .selectAll("circle")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr("id", "circles")
+            .attr("r", function (d) { return size(parseInt(d.maxOccupancy)) })
+            .attr("cx", width / 2)
+            .attr("cy", height / 2)
+            .style("fill", function (d) { return color(d.businessType) })
+            .style("fill-opacity", 0.8)
+            .attr("stroke", "black")
+            .style("stroke-width", 4)
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended));
+
+
+
+        var simulation = d3.forceSimulation()
+            .force("x", d3.forceX().strength(0.1).x(function (d) { return x(width / 2) }))
+            .force("y", d3.forceY().strength(0.1).y(width / 2))
+            .force("center", d3.forceCenter().x(width / 2).y(height / 2))
+            .force("charge", d3.forceManyBody().strength(.1))
+            .force("collide", d3.forceCollide().strength(.2).radius(function (d) { return (size(d['maxOccupancy'] * 2)) + 10 }).iterations(1))
+
+        simulation
+                    .nodes(data)
+                    .on("tick", function (d) {
+                        node
+                            .attr("cx", function (d) { return d.x; })
+                            .attr("cy", function (d) { return d.y; })
+                    });
+
+        function dragstarted(d) {
+            if (!d3.event.active) simulation.alphaTarget(.03).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+        function dragged(d) {
+            d.fx = d3.event.x;
+            d.fy = d3.event.y;
+        }
+        function dragended(d) {
+            if (!d3.event.active) simulation.alphaTarget(.03);
+            d.fx = null;
+            d.fy = null;
+        }
+
     }
-
-    // function drawCircleMap() {
-    //     if (!svg) return;
-    //     const imageScale = d3.scaleLinear()
-    //         .domain([0, imageWidth])
-    //         .range([0, width]);
-    //     const imageScaleY = d3.scaleLinear()
-    //         .domain([0, imageHeight])
-    //         .range([0, height]);
-    //     svg.selectAll("circle.map_points").remove();
-    //     svg.selectAll("circle.map_points")
-    //         .data(geoJSONdata)
-    //         .enter()
-    //         .append("circle")
-    //         .attr("class", "map_points")
-    //         .attr("cx", d => imageScale(d[0]))
-    //         .attr("cy", d => imageScaleY(d[1]))
-    //         .attr("r", pointsRadius)
-    //         .attr("fill", "green")
-    //         .style("opacity", 0.5)
-    // }
-
-    // function handleZooming(e) {
-    //     svg.select("image").attr("transform", e.transform)
-    //     svg.selectAll("circle")
-    //         .attr("transform", e.transform)
-    // }
 
     function calculateSVGDimentions() {
         const windowWidth = window.innerWidth;
@@ -74,19 +109,6 @@ function Circular() {
 
         svg.attr("width", width).attr("height", height);
     }
-
-    // function addEventListener() {
-    //     // zoom = d3.zoom()
-    //     //     .scaleExtent([1, 8])
-    //     //     .on("zoom", handleZooming);
-    //     // svg.call(zoom);
-
-    //     window.addEventListener("resize", () => {
-    //         calculateSVGDimentions()
-    //         drawCircleMap()
-    //     });
-    // }
-
 
 
     return (
