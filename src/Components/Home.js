@@ -1,4 +1,4 @@
-import Chord from "./chord";
+import Circular from "./circular";
 import Heatmap from "./heatmap";
 
 function Home() {
@@ -8,8 +8,7 @@ function Home() {
         <h1 className="text-xl bold">CSE 578 - 2022 VAST Mini Challenge 1 - Group Project</h1>
         <h3 className="h3">Heatmap -&gt; Chord Graph , Circular Packing Graph, Animated Scatter Plot -&gt; Bar, Pie CHart</h3>
     </div>
-    {/* <Heatmap /> */}
-    <Chord/>
+    <Circular />
     </>
   );
 }
