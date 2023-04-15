@@ -3,18 +3,24 @@ import { useEffect, useState } from "react";
 import imgLocation from '../img/BaseMap.png';
 import rawBaseMapVectorPoints from '../data/merged_points_10000.json';
 import rawParticipantsLocation from '../data/participants.json';
-import rawBuildingLocation from '../data/buildings.csv';
+import rawBuildingLocation from '../data/buildings.json';
 
 function Heatmap() {
     let d3Lasso;
 
     const [geoJSONdata, setGeoJSONdata] = useState(rawBaseMapVectorPoints);
+    const [date,setDate] = useState('2020-01-01');
+    const [time,setTime] = useState('00:00:00');
     const [participantsLocation, setParticipantsLocation] = useState([]);
-    const [buildingsLocation, setBuildingsLocation] = useState([]);
     const [availablebalance, setAvailablebalance] = useState({
         min: Number.MAX_VALUE,
         max: Number.MIN_VALUE
     });
+    const [svgDimention, setSvgDimention] = useState({
+        width: 800,
+        height: 650
+    })
+
     const participantsMinMax= {
             x: {
                 min: -4626,
@@ -26,11 +32,6 @@ function Heatmap() {
             }
     };
 
-    const [svgDimention, setSvgDimention] = useState({
-        width: 800,
-        height: 650
-    })
-
     const imageWidth = 1076;
     const imageHeight = 1144;
     const pointsRadius = 3;
@@ -38,25 +39,39 @@ function Heatmap() {
     const d3 = window.d3;
     const svg = d3.select("#heatmap_svg").attr("width", svgDimention.width).attr("height", svgDimention.height);
 
-    let zoom;
+    const imageDimentionScaleX = d3.scaleLinear()
+    .domain([participantsMinMax.x.min, participantsMinMax.x.max])
+    .range([0, imageWidth]);
+    
+    const imageDimentionScaleY = d3.scaleLinear()
+    .domain([participantsMinMax.y.min, participantsMinMax.y.max])
+    .range([imageHeight, 0]);
 
     useEffect(() => {
-        (async () => {
-            await modifyLocations();
-        })();
         addEventListener();
+        calculateSVGDimentions();
     }, []);
 
     useEffect(() => {
-        calculateSVGDimentions();
-        drawBaseImageMap();
-        // drawBaseMapPoints();
-        drawBuildingLocation();
+        (async () => {
+            drawBaseImageMap();
+            // drawBaseMapPoints();
+            drawBuildingLocation();
+        })();
+    }, [svgDimention]);
+
+    useEffect(() => {
+        (async () => {
+            await modifyParticipantsData();
+        })();
+    }, [date,time]);
+
+    useEffect(() => {
         drawParticipantsLocation();
         initLasso();
     }, [participantsLocation]);
 
-    async function modifyLocations() {
+    async function modifyParticipantsData() {
         let maxAvailablebalance = 0, minAvailablebalance = Number.MAX_VALUE;
         let modifiedParticipantsLocation = rawParticipantsLocation.map(d => {
             const locationPointString = d.currentlocation;
@@ -83,41 +98,12 @@ function Heatmap() {
             max: maxAvailablebalance
         });
 
-        const imageDimentionScaleX = d3.scaleLinear()
-            .domain([participantsMinMax.x.min, participantsMinMax.x.max])
-            .range([0, imageWidth]);
-
-        const imageDimentionScaleY = d3.scaleLinear()
-            .domain([participantsMinMax.y.min, participantsMinMax.y.max])
-            .range([imageHeight, 0]);
-
 
         modifiedParticipantsLocation = modifiedParticipantsLocation.map(d => ({
             ...d,
             x: imageDimentionScaleX(d.x),
             y: imageDimentionScaleY(d.y)
         }));
-
-        const rawBuildingLocationData = await d3.csv(rawBuildingLocation);
-        
-        const db = []
-        const modifiedBuildingLocation = rawBuildingLocationData.map(d => {
-            // d.location = POLYGON ((400.41017008252567 4426.631523990375, 400.6737114714055 4466.630655805157, 495.0955925249795 4466.008540460536, 494.83205113609966 4426.009408645754, 400.41017008252567 4426.631523990375))
-            // find centroid of polygon
-            const locationPointString = d.location;
-            const locationPointSplitted = locationPointString.split(" ");
-            // console.log(locationPointSplitted);
-            const x = parseFloat(locationPointSplitted[1].slice(2, -1));
-            const y = parseFloat(locationPointSplitted[2].slice(0, -1));
-
-            return {
-                ...d,
-                x: imageDimentionScaleX(x),
-                y: imageDimentionScaleY(y)
-            }
-        });
-
-        setBuildingsLocation(modifiedBuildingLocation);
 
         setParticipantsLocation(modifiedParticipantsLocation);
     }
@@ -205,7 +191,7 @@ function Heatmap() {
         svg.selectAll("circle.building").remove();
 
         svg.selectAll("circle.building")
-            .data(buildingsLocation)
+            .data(rawBuildingLocation)
             .enter()
             .append("circle")
             .attr("class", "building")
@@ -216,12 +202,6 @@ function Heatmap() {
             .attr("stroke", "black")
             .attr("stroke-width", 1)
             .style("opacity", 0);
-    }
-
-    function handleZooming(e) {
-        svg.select("image").attr("transform", e.transform)
-        svg.selectAll("circle")
-            .attr("transform", e.transform)
     }
 
     function calculateSVGDimentions() {
@@ -239,11 +219,6 @@ function Heatmap() {
     }
 
     function addEventListener() {
-        // zoom = d3.zoom()
-        //     .scaleExtent([1, 8])
-        //     .on("zoom", handleZooming);
-        // svg.call(zoom);
-
         // window.addEventListener("resize", () => {
         //     calculateSVGDimentions();
         //     // drawBaseImageMap();
@@ -282,7 +257,7 @@ function Heatmap() {
         .closePathDistance(305) 
         .closePathSelect(true) 
         .targetArea(svg)
-        .items(svg.selectAll("circle")) 
+        .items(svg.selectAll("circle"))
         .on("start",onLassoStart) 
         .on("draw",onLassoDraw) 
         .on("end",onLassoEnd); 
