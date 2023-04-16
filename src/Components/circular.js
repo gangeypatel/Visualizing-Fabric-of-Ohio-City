@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import axios from "axios";
+import { useContext, useEffect, useState } from "react";
+import { BuildingContext, DateContext } from "../context";
 
 import imgLocation from '../img/BaseMap.png';
-import data from '../data/circularPacking.json';
+// import data from '../data/circularPacking.json';
 
 function Circular() {
     let d3, d3Lasso;
@@ -14,6 +16,11 @@ function Circular() {
 
     let svg, node, color,size,x;
 
+    const buildingContext = useContext(BuildingContext)
+    const data = buildingContext.selectedBuildings
+
+    const dateContext = useContext(DateContext)
+    const date = dateContext.date
 
     function colorsize() {
         
@@ -62,8 +69,20 @@ function Circular() {
             .call(d3.drag()
                 .on("start", dragstarted)
                 .on("drag", dragged)
-                .on("end", dragended));
+                .on("end", dragended))
+            .on("click", function(d, i) {
+                fetchBusinessData(i.businessId);
+            });
 
+        async function fetchBusinessData(businessId) {
+
+            const result = await axios.get("http://127.0.0.1:8002/barchart/" + date + "&" + businessId)
+                        .then((d) => {
+                            return d.data;
+                        });
+
+            console.log(result);
+        }
 
 
         var simulation = d3.forceSimulation()

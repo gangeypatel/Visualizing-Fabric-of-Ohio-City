@@ -1,36 +1,48 @@
-import { lab } from "d3";
-import { useEffect, useState } from "react";
-import rawJsonData from '../data/chordDiagram.json'
-// const numberOfParticipants = 1011;
-// const adjMatrix = [];
-// const adjMatrix = [
-//     // [ 0, 0, 0, 0],
-//     [ 0, 0, 1, 1],
-//     [ 0, 1, 0, 1],
-//     [ 0, 1, 1, 0]
-//   ];
+import { useEffect, useState, useContext } from "react";
+import { ParticipantsContext, DateContext } from "../context";
+import axios from "axios";
+// import rawJsonData from '../data/chordDiagram.json'
 
 function Chord() {
+    console.log()
     const [svgDimention, setSvgDimention] = useState({
         width: 800,
         height: 650
     })
 
-    const [nodeLinkDictionary,setNodeLinkDictionary] = useState({
-        'nodes': [],
-        'links': []
-    })
+    const participantContext = useContext(ParticipantsContext)
+    const participants = participantContext.selectedParticipants
+    const dateContext = useContext(DateContext)
+    const date = dateContext.date
 
     const d3 = window.d3;
-    const svg = d3.select("#chord_svg").attr("width", svgDimention.width).attr("height", svgDimention.height);
+
     useEffect(() => {
-        restructureData();
         calculateSVGDimentions();
     }, []);
 
     useEffect(() => {
-        drawChordChart();
-    },[nodeLinkDictionary])
+        (async () => {
+            const rawJsonData = await fetchParticipantConnections(makeQuery(date, participants));
+            const data = restructureData(rawJsonData);
+            drawChordChart(data);
+        })()
+
+    }, [participants]);
+
+    async function fetchParticipantConnections(query){
+        return await axios.get("http://127.0.0.1:8002/social_network/"+ query, {
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+            },
+            })
+            .then((d) => {
+                return d.data;
+            }).catch((e) => {
+                console.log(e.message)
+                return [];
+            })
+    }
 
     function calculateSVGDimentions() {
         const windowWidth = window.innerWidth;
@@ -42,10 +54,9 @@ function Chord() {
         })
     }
 
-    function drawChordChart() {
-
-        const RADIUS = svgDimention.height/4;
-        const data = nodeLinkDictionary;
+    function drawChordChart(data) {
+        const svg = d3.select("#chord_svg").attr("width", svgDimention.width).attr("height", svgDimention.height);
+        const RADIUS = svgDimention.height/2.5;
         const allNodes = data.nodes.map(d => d.name)
 
         const theta = d3.scaleBand()
@@ -57,12 +68,14 @@ function Chord() {
         data.nodes.forEach(function (n) {
             idToNode[n.id] = n;
         });
-
+        console.log(data)
+        console.log("svg",svg)
         const links = svg
             .selectAll('mylinks')
             .data(data.links)
             .join('path')
             .attr('d', d => {
+                console.log(d);
                 var startX = svgDimention.width/2 + RADIUS*Math.cos(theta(idToNode[d.source].name))
                 var endX = svgDimention.width/2 + RADIUS*Math.cos(theta(idToNode[d.target].name))
                 var startY = svgDimention.height/2 + RADIUS*Math.sin(theta(idToNode[d.source].name))
@@ -158,33 +171,16 @@ function Chord() {
             });
     }
 
-    // function createAdjacencyMatrix() {
-    //     const nodeDictionary = {};
-    //     rawJsonData.forEach(data => {
-    //         if(data['participantidfrom'] in nodeDictionary) {
-    //             nodeDictionary[data['participantidfrom']].push(parseInt(data['participantidto']));
-    //         } else {
-    //             nodeDictionary[data['participantidfrom']] = [];
-    //             nodeDictionary[data['participantidfrom']].push(parseInt(data['participantidto']));
-    //         }
-    //     });
-    //     console.log(nodeDictionary);
-    //     for(var participantId = 0; participantId < numberOfParticipants; participantId++) {
-    //         if(participantId in nodeDictionary) {
-    //             var currentAdj = new Array(numberOfParticipants).fill(0);
-    //             for(var i=0; i<numberOfParticipants; i++) {
-    //                 if(i in nodeDictionary[participantId]) {
-    //                     currentAdj[i] = 1;
-    //                 }
-    //             }
-    //             adjMatrix.push(currentAdj);
-    //         }
-    //         // else
-    //         //     adjMatrix.push(new Array(numberOfParticipants).fill(0));
-    //     }
-    // }
+    function makeQuery(date, participants) {
+        let query = date;
+        participants.forEach(participant => {
+            query += "&" + participant.participantid;
+        });
 
-    function restructureData() {
+        return query;
+    }
+
+    function restructureData(rawJsonData) {
     
         const distinctNodes = new Set();
         const tempDict = {
@@ -204,7 +200,7 @@ function Chord() {
             }
         });
 
-        setNodeLinkDictionary(tempDict)
+        return tempDict;
     }
 
     return (
