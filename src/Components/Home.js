@@ -3,6 +3,7 @@ import {ParticipantsContext, BuildingContext, DateContext} from "../context";
 import { useState } from "react";
 import Circular from "./circular";
 import Chord from "./chord"
+import BarGraph from "./barGraph";
 
 function Home() {
   const [selectedParticipants, setSelectedParticipants] = useState([]);
@@ -20,7 +21,7 @@ function Home() {
         {
           selectedParticipants.length == 0 ?
           <Heatmap /> :
-          <Circular />
+          <BarGraph/>
         }
         </DateContext.Provider>
       </BuildingContext.Provider >
