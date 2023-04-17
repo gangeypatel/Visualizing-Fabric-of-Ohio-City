@@ -24,7 +24,7 @@ function Home() {
           {
             selectedParticipants.length == 0 ?
             <Heatmap /> :
-            (visitorsAndEarnings.length == 0 ? <Circular/> : <BarGraph/>)
+            (visitorsAndEarnings.length == 0 ? <Circular/> : <Radar/>)
 
           }
           </EarningsAndVisitorsContext.Provider>

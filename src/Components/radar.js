@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
-import rawJsonData from '../data/BarChartPieChart.json'
+import { useEffect, useState, useContext } from "react";
+// import rawJsonData from '../data/BarChartPieChart.json'
+import { EarningsAndVisitorsContext } from "../context";
 
 function Radar() {
     const [svgDimention, setSvgDimention] = useState({
@@ -7,15 +8,17 @@ function Radar() {
         height: 650
     })
 
-    const d3 = window.d3;
+    const earningsAndVisitorContext = useContext(EarningsAndVisitorsContext);
+    const originalData = earningsAndVisitorContext.visitorsAndEarnings;
 
+    const d3 = window.d3;
     useEffect(() => {
         calculateSVGDimentions();
-        const data = modifyData();
+        const data = modifyData(originalData);
         drawRadarChart(data);
     }, []);
 
-    function modifyData() {
+    function modifyData(rawJsonData) {
         const spendingValues = [];
         
         rawJsonData.forEach((item) => {

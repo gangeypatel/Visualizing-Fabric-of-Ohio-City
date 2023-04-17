@@ -1,7 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useContext } from "react";
 import { select, scaleLinear, scaleBand } from 'd3';
 import originalData from '../data/BarChartPieChart.json';
 import * as d3 from 'd3';
+import { EarningsAndVisitorsContext } from "../context";
 
 function BarGraph() {
 
@@ -10,6 +11,10 @@ function BarGraph() {
     var x, y, svg, g;
     var width = 800;
     var height = 400;
+
+
+    const earningsAndVisitorContext = useContext(EarningsAndVisitorsContext);
+    const originalData = earningsAndVisitorContext.visitorsAndEarnings;
 
     const svgRef = useRef();
 
