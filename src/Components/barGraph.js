@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useContext } from "react";
 import { select, scaleBand, scaleLinear } from 'd3';
-import originalData from '../data/BarChartPieChart.json';
+import { EarningsAndVisitorsContext } from "../context";
+// import originalData from '../data/BarChartPieChart.json';
 import * as d3 from 'd3';
 
 function BarGraph() {
@@ -8,6 +9,9 @@ function BarGraph() {
     const margin = { top: 10, right: 80, bottom: 40, left: 30 };
     let svg, data = [];
     const svgRef = useRef();
+
+    const earningsAndVisitorContext = useContext(EarningsAndVisitorsContext)
+    const originalData = earningsAndVisitorContext.visitorsAndEarnings
 
     data = Object.entries(originalData).map(([hour, { participants }]) => ({
         hour,
@@ -72,7 +76,7 @@ function BarGraph() {
 
     return (
         <div className="flex items-center justify-center overflow-hidden">
-            <svg ref={svgRef}></svg>
+            <svg id="bar_svg" ref={svgRef}></svg>
         </div>
     );
 }
