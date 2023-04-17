@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useContext, useEffect, useState } from "react";
-import { BuildingContext, DateContext } from "../context";
+import { BuildingContext, DateContext, EarningsAndVisitorsContext } from "../context";
 
 import imgLocation from '../img/BaseMap.png';
 // import data from '../data/circularPacking.json';
@@ -21,6 +21,8 @@ function Circular() {
 
     const dateContext = useContext(DateContext)
     const date = dateContext.date
+
+    const earningsAndVisitorContext = useContext(EarningsAndVisitorsContext)
 
     function colorsize() {
         
@@ -80,7 +82,7 @@ function Circular() {
                         .then((d) => {
                             return d.data;
                         });
-
+            earningsAndVisitorContext.setVisitorsAndEarnings(result);
             console.log(result);
         }
 
