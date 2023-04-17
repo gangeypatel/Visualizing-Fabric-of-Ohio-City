@@ -1,28 +1,7 @@
-import { useEffect, useState, useContext } from "react";
-// import { ParticipantsContext, DateContext } from "../context";
-import axios from "axios";
+import { useEffect, useState } from "react";
 import rawJsonData from '../data/BarChartPieChart.json'
 
-console.log(rawJsonData);
-
-const spendingValues = [];
-rawJsonData.forEach((item) => {
-  const spending = item.spending;
-  if (typeof spending === "string" && spending.startsWith("0.0")) {
-    spendingValues.push(0);
-  } else {
-    spendingValues.push(parseFloat(spending));
-  }
-});
-
-
-var data = spendingValues;
-
-console.log(data);
-
 function Radar() {
-    console.log("RADAR CALLED");
-    console.log(data);
     const [svgDimention, setSvgDimention] = useState({
         width: 800,
         height: 650
@@ -32,8 +11,24 @@ function Radar() {
 
     useEffect(() => {
         calculateSVGDimentions();
+        const data = modifyData();
         drawRadarChart(data);
     }, []);
+
+    function modifyData() {
+        const spendingValues = [];
+        
+        rawJsonData.forEach((item) => {
+            const spending = item.spending;
+            if (typeof spending === "string" && spending.startsWith("0.0")) {
+                spendingValues.push(0);
+            } else {
+                spendingValues.push(parseFloat(spending));
+            }
+        });
+
+        return spendingValues;
+    }
 
     function calculateSVGDimentions() {
         const windowWidth = window.innerWidth;
@@ -78,42 +73,42 @@ function Radar() {
             .attr("y2", (d, i) => radius * Math.sin(angleSlice * i - Math.PI / 2))
             .attr("stroke", "darkblue")
             .style("opacity", 0.3)
-            .on("mouseover", function(d,i) {
+            .on("mouseover", function (d, i) {
                 d3.select(this)
                     .style("stroke", "darkblue")
                     .style("stroke-width", "3px")
                     .style("opacity", 1.0)
                     .attr("stroke", "darkblue");
-                    const spending = data[i];
-                    console.log(spending);
-                    // console.log(d);
+                const spending = data[i];
+                console.log(spending);
+                // console.log(d);
                 tooltip.text(`Spending: ${spending}`)
                     .style("visibility", "visible")
                     .attr("x", 630)
                     .attr("y", 54);
 
             })
-            
+
             // .on("mousemove", function(d,i) {
             //     tooltip.attr("x", d.pageX)
             //         .attr("y", d.pageY);
             // })
-            .on("mouseout", function() {
+            .on("mouseout", function () {
                 d3.select(this)
                     .style("stroke", "darkblue")
                     .style("stroke-width", "1px")
                     .style("opacity", 0.3);
 
-                    tooltip.style("visibility", "hidden");
+                tooltip.style("visibility", "hidden");
             })
-            .transition() 
-            .duration(3000) 
+            .transition()
+            .duration(3000)
             .attr("x1", (d, i) => radius * Math.cos(angleSlice * i - Math.PI / 2))
             .attr("y1", (d, i) => radius * Math.sin(angleSlice * i - Math.PI / 2))
             .attr("x2", 0)
             .attr("y2", 0);
-            // .attr("x1", (d, i) => radius * Math.cos(angleSlice * i - Math.PI / 2)) // change the x2 and y2 attributes to animate the transition
-            // .attr("y1", (d, i) => radius * Math.cos(angleSlice * i - Math.PI / 2));
+        // .attr("x1", (d, i) => radius * Math.cos(angleSlice * i - Math.PI / 2)) // change the x2 and y2 attributes to animate the transition
+        // .attr("y1", (d, i) => radius * Math.cos(angleSlice * i - Math.PI / 2));
 
         axis.append("text")
             .attr("class", "legend")
@@ -125,18 +120,18 @@ function Radar() {
             // .attr("x", (d, i) => radius * 1.105 * Math.cos(angleSlice * i - Math.PI / 2))
             // .attr("y", (d, i) => radius * 1.105 * Math.sin(angleSlice * i - Math.PI / 2))
             .text((d, i) => {
-                const hour = i+1;
-                if(hour === 12) {
+                const hour = i + 1;
+                if (hour === 12) {
                     return `12:00 PM`;
-                } else if(hour === 24) {
+                } else if (hour === 24) {
                     return `12:00 AM`;
-                } else if(hour > 12) {
-                    return `${hour-12}:00 PM`;
+                } else if (hour > 12) {
+                    return `${hour - 12}:00 PM`;
                 } else {
                     return `${hour}:00 AM`;
                 }
             })
-            
+
             .transition() // add a transition
             .delay((d, i) => i * 80) // delay each transition by a multiple of 100ms
             .attr("x", (d, i) => radius * 1.12 * Math.cos(angleSlice * i - Math.PI / 2))
@@ -144,22 +139,22 @@ function Radar() {
 
 
         const circle = svg.append("circle")
-            .attr("cx", svgDimention.width/2)
-            .attr("cy", svgDimention.height/2)
+            .attr("cx", svgDimention.width / 2)
+            .attr("cy", svgDimention.height / 2)
             .attr("r", radius)
             .style("fill", "none")
             .style("stroke", "black")
             .style("stroke-width", "12px")
             .style("opacity", 0.75);
-            
+
 
         const minValue = Math.min(...data);
         const maxValue = Math.max(...data);
         // // console.log(minValue);
         // const radius = 200;
 
-        
-        const center = [svgDimention.width/2, svgDimention.height/2];
+
+        const center = [svgDimention.width / 2, svgDimention.height / 2];
         const angleSlice2 = Math.PI * 2 / data.length;
 
         const coords = data.map((d, i) => {
@@ -167,7 +162,7 @@ function Radar() {
             const r = normalized * radius;
             const angle = i * angleSlice2 - Math.PI / 2;
             return [center[0] + r * Math.cos(angle), center[1] + r * Math.sin(angle)];
-          });
+        });
 
         console.log(coords);
 
@@ -180,33 +175,33 @@ function Radar() {
         // #C7C7BB
 
         const path = svg.append("path")
-                        .datum(coordsClosed)
-                        .attr("d", d3.line())
-                        .style("fill", color)
-                        .style("stroke", "#3D405B")
-                        .style("stroke-width", "2px")
-                        .style("opacity", 0.8)
-                        .on("mouseover", function() {
-                            d3.select(this)
-                                .style("stroke", "black")
-                                .style("stroke-width", "5px")
-                                .style("opacity", 1.0);
+            .datum(coordsClosed)
+            .attr("d", d3.line())
+            .style("fill", color)
+            .style("stroke", "#3D405B")
+            .style("stroke-width", "2px")
+            .style("opacity", 0.8)
+            .on("mouseover", function () {
+                d3.select(this)
+                    .style("stroke", "black")
+                    .style("stroke-width", "5px")
+                    .style("opacity", 1.0);
 
-                                // const spending = data[i];
-                                // console.log(spending);
+                // const spending = data[i];
+                // console.log(spending);
 
-                        })
-                        .on("mouseout", function() {
-                            d3.select(this)
-                                .style("stroke", "black")
-                                .style("stroke-width", "2px")
-                                .style("opacity", 0.8);
-                        });
+            })
+            .on("mouseout", function () {
+                d3.select(this)
+                    .style("stroke", "black")
+                    .style("stroke-width", "2px")
+                    .style("opacity", 0.8);
+            });
 
         // const tooltip = d3.select("body").append("div")
         // .attr("class", "tooltip")
         // .style("opacity", 0);
-        
+
         // const points = svg.selectAll(".point")
         // .data(coords)
         // .enter()
@@ -229,7 +224,7 @@ function Radar() {
         //     .duration(500)
         //     .style("opacity", 0);
         // });
-    
+
     }
 
     return (
