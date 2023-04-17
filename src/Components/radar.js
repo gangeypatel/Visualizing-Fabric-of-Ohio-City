@@ -82,7 +82,7 @@ function Radar() {
                 const spending = data[i];
                 console.log(spending);
                 // console.log(d);
-                tooltip.text(`Spending: ${spending}`)
+                tooltip.text(`Spending: ${d3.format(".2f")(spending)}`)
                     .style("visibility", "visible")
                     .attr("x", 630)
                     .attr("y", 54);
