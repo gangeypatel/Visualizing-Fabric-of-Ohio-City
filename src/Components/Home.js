@@ -3,6 +3,7 @@ import {ParticipantsContext, BuildingContext, DateContext, EarningsAndVisitorsCo
 import { useState } from "react";
 import Circular from "./circular";
 import Chord from "./chord";
+import Radar from "./radar";
 import BarGraph from "./barGraph";
 
 function Home() {
