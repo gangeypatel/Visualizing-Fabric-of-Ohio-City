@@ -106,11 +106,33 @@ function Chord() {
             .selectAll("mylabels")
             .data(data.nodes.sort((a,b) => {return +b.n - +a.n }))
             .join("text")
-            .attr("x", d=>{return svgDimention.width/2 + (RADIUS+RADIUS/10)*Math.cos(theta(d.name))})
-            .attr("y", d=>{return svgDimention.height/2 + (RADIUS+RADIUS/10)*Math.sin(theta(d.name))})
+            // .attr("x", d=>{return svgDimention.width/2 + (RADIUS+RADIUS/5)*Math.cos(theta(d.name))})
+            // .attr("y", d=>{return svgDimention.height/2 + (RADIUS+RADIUS/5)*Math.sin(theta(d.name))})
             .text(d=>d.name)
-            .style("text-anchor", "end")
-            // .attr("transform",d=>`rotate(${theta(d.name) * 180/ Math.PI})`)
+            .style("text-anchor", (d) => {
+                const angle = theta(d.name) * 180/ Math.PI;
+                if(angle > 90 && angle < 270) {
+                    return "start";
+                } else {
+                    return "end";
+                }
+            })
+            .attr("transform",(d) => {
+                const angle = theta(d.name) * 180/ Math.PI;
+                if(angle > 90 && angle < 270) {
+                    return `translate(${svgDimention.width/2 + (RADIUS+RADIUS/7)*Math.cos(theta(d.name))}, ${svgDimention.height/2 + (RADIUS+RADIUS/7)*Math.sin(theta(d.name))}) rotate(${(theta(d.name) * 180/ Math.PI) + 180})`;
+                } else {
+                    return `translate(${svgDimention.width/2 + (RADIUS+RADIUS/7)*Math.cos(theta(d.name))}, ${svgDimention.height/2 + (RADIUS+RADIUS/7)*Math.sin(theta(d.name))}) rotate(${theta(d.name) * 180/ Math.PI})`;
+                }
+            })
+            // .attr("transform",(d) => {
+            //     const angle = theta(d.name) * 180/ Math.PI;
+            //     if(angle > 90 && angle < 270) {
+            //         return "rotate(180)";
+            //     } else {
+            //         return "rotate(-90)";
+            //     }
+            // })
             .style("font-size", 8)
 
         nodes
@@ -144,16 +166,24 @@ function Chord() {
                 // Labels
                 labels
                     .style("font-size", function(label_d){ return connections.has(label_d.name) ? 15 : 2 } )
-                    .attr("y", function(label_d){ 
-                        // if(label_d.name === i.name) 
-                        if(connections.has(label_d.name)) {
-                            return  svgDimention.height/2 + (RADIUS+RADIUS/5)*Math.sin(theta(label_d.name));
+                    .attr("transform",(d)=> {
+                        const angle = theta(d.name) * 180/ Math.PI;
+                        if(angle > 90 && angle < 270) {
+                            return `translate(${svgDimention.width/2 + (RADIUS+RADIUS/5)*Math.cos(theta(d.name))}, ${svgDimention.height/2 + (RADIUS+RADIUS/5)*Math.sin(theta(d.name))}) rotate(${(theta(d.name) * 180/ Math.PI) + 180})`;
+                        } else {
+                            return `translate(${svgDimention.width/2 + (RADIUS+RADIUS/5)*Math.cos(theta(d.name))}, ${svgDimention.height/2 + (RADIUS+RADIUS/5)*Math.sin(theta(d.name))}) rotate(${theta(d.name) * 180/ Math.PI})`;
                         }
                     })
-                    .attr("x", function(label_d) {
-                        if(connections.has(label_d.name))
-                            return svgDimention.width/2 + (RADIUS+RADIUS/5)*Math.cos(theta(label_d.name));
-                    })
+                    // .attr("y", function(label_d){ 
+                    //     // if(label_d.name === i.name) 
+                    //     if(connections.has(label_d.name)) {
+                    //         return  svgDimention.height/2 + (RADIUS+RADIUS/5)*Math.sin(theta(label_d.name));
+                    //     }
+                    // })
+                    // .attr("x", function(label_d) {
+                    //     if(connections.has(label_d.name))
+                    //         return svgDimention.width/2 + (RADIUS+RADIUS/5)*Math.cos(theta(label_d.name));
+                    // })
             })
             .on('mouseout', function (d) {
                 nodes.style('opacity', 1)
@@ -162,11 +192,19 @@ function Chord() {
                     .style('opacity', 1)
                 labels
                     .style("font-size", 8 )
-                    .attr("y", function(label_d){ 
-                            return  svgDimention.height/2 + (RADIUS+RADIUS/10)*Math.sin(theta(label_d.name));
-                    })
-                    .attr("x", function(label_d) {
-                            return svgDimention.width/2 + (RADIUS+RADIUS/10)*Math.cos(theta(label_d.name));
+                    // .attr("y", function(label_d){ 
+                    //         return  svgDimention.height/2 + (RADIUS+RADIUS/10)*Math.sin(theta(label_d.name));
+                    // })
+                    // .attr("x", function(label_d) {
+                    //         return svgDimention.width/2 + (RADIUS+RADIUS/10)*Math.cos(theta(label_d.name));
+                    // })
+                    .attr("transform",(d)=> {
+                        const angle = theta(d.name) * 180/ Math.PI;
+                        if(angle > 90 && angle < 270) {
+                            return `translate(${svgDimention.width/2 + (RADIUS+RADIUS/7)*Math.cos(theta(d.name))}, ${svgDimention.height/2 + (RADIUS+RADIUS/7)*Math.sin(theta(d.name))}) rotate(${(theta(d.name) * 180/ Math.PI) + 180})`;
+                        } else {
+                            return `translate(${svgDimention.width/2 + (RADIUS+RADIUS/7)*Math.cos(theta(d.name))}, ${svgDimention.height/2 + (RADIUS+RADIUS/7)*Math.sin(theta(d.name))}) rotate(${theta(d.name) * 180/ Math.PI})`;
+                        }
                     })
             });
     }
