@@ -85,9 +85,9 @@ function InteractiveScatter() {
                         .attr("transform",(d) => {
                             const angle = theta(d) * 180/ Math.PI;
                             if(angle > 90 && angle < 270) {
-                                return `translate(${svgDimention.width/2 + (RADIUS+RADIUS/5)*Math.cos(theta(d))}, ${svgDimention.height/2 + (RADIUS+RADIUS/7)*Math.sin(theta(d))}) rotate(${(theta(d) * 180/ Math.PI) + 180})`;
+                                return `translate(${svgDimention.width/2 + (RADIUS+RADIUS/5)*Math.cos(theta(d))}, ${svgDimention.height/2 + (RADIUS+RADIUS/5)*Math.sin(theta(d))}) rotate(${(theta(d) * 180/ Math.PI) + 180})`;
                             } else {
-                                return `translate(${svgDimention.width/2 + (RADIUS+RADIUS/5)*Math.cos(theta(d))}, ${svgDimention.height/2 + (RADIUS+RADIUS/7)*Math.sin(theta(d))}) rotate(${theta(d) * 180/ Math.PI})`;
+                                return `translate(${svgDimention.width/2 + (RADIUS+RADIUS/5)*Math.cos(theta(d))}, ${svgDimention.height/2 + (RADIUS+RADIUS/5)*Math.sin(theta(d))}) rotate(${theta(d) * 180/ Math.PI})`;
                             }
                         })
                         .style("font-size", 14)
