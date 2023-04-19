@@ -84,7 +84,7 @@ function InteractiveScatter() {
                             }
                         })
                         .attr("transform",(d) => {
-                            const angle = theta(d.name) * 180/ Math.PI;
+                            const angle = theta(d) * 180/ Math.PI;
                             if(angle > 90 && angle < 270) {
                                 return `translate(${svgDimention.width/2 + (RADIUS+RADIUS/7)*Math.cos(theta(d))}, ${svgDimention.height/2 + (RADIUS+RADIUS/7)*Math.sin(theta(d))}) rotate(${(theta(d) * 180/ Math.PI) + 180})`;
                             } else {
