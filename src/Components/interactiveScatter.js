@@ -3,7 +3,7 @@ import { ParticipantsContext, DateContext } from "../context";
 import axios from "axios";
 import rawJsonData from '../data/chordDiagram.json'
 const activities = ["AtHome", "Transport", "AtRecreation", "AtRestaurant", "AtWork"];
-const ANIMATION_STEP = 500;
+const ANIMATION_STEP = 1000;
 var myTimer;
 
 function InteractiveScatter() {
@@ -66,6 +66,10 @@ function InteractiveScatter() {
                     .align(0)
                     .domain(activities);
 
+        const color = d3.scaleOrdinal()
+                        .range(["violet", "blue", "green", "yellow", "red"])
+                        .domain(activities);
+
         const labels = svg
                         .selectAll("mylabels")
                         .data(activities)
@@ -94,22 +98,19 @@ function InteractiveScatter() {
         function playAnimation() {
             clearInterval (myTimer);
             myTimer = setInterval (function() {
-                console.log(index);
                 drawInteractivePlotUtil(data[index]);
-                index = (+index + 1)%(+data[0].length - 1);
-                console.log(index + " ---");
+                index = (index + 1)%(data.length);
             }, ANIMATION_STEP);
         };
 
         function drawInteractivePlotUtil(data) {
-            console.log(data);
             const nodes = svg.selectAll(".nodes").data(data);
             nodes.join(
                 enter => enter.append("circle")
                                 .attr("cx", d=>{return svgDimention.width/2 + RADIUS*Math.cos(theta(d.currentmode))})
                                 .attr("cy", d=>{return svgDimention.height/2 + RADIUS*Math.sin(theta(d.currentmode))})
                                 .attr("r", "5")
-                                .style("fill", "green")
+                                .style("fill", (d) => color(d.currentmode))
                                 .attr("stroke", "white")
                                 .attr("class", "nodes"),
 
@@ -117,7 +118,7 @@ function InteractiveScatter() {
                                 .attr("cx", d=>{return svgDimention.width/2 + RADIUS*Math.cos(theta(d.currentmode))})
                                 .attr("cy", d=>{return svgDimention.height/2 + RADIUS*Math.sin(theta(d.currentmode))})
                                 .attr("r", "5")
-                                .style("fill", "green")
+                                .style("fill", (d) => color(d.currentmode))
                                 .attr("stroke", "white")
                                 .attr("class", "nodes"),
 
