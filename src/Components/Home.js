@@ -1,34 +1,27 @@
 import Heatmap from "./heatmap";
-import {ParticipantsContext, BuildingContext, DateContext, EarningsAndVisitorsContext} from "../context";
+import {ParticipantsContext, BuildingContext, DateTimeContext, EarningsAndVisitorsContext} from "../context";
 import { useState } from "react";
-import Circular from "./circular";
-import Chord from "./chord";
-import Radar from "./radar";
-import BarGraph from "./barGraph";
+import LeftPanel from "./LeftPanel";
+import Typography from "@mui/material/Typography";
 
 function Home() {
   const [selectedParticipants, setSelectedParticipants] = useState([]);
   const [selectedBuildings, setSelectedBuildings] = useState([]);
-  const [date, setDate] = useState('2022-03-01');
+  const [dateTime, setDateTime] = useState('2022-03-01 17');
   const [visitorsAndEarnings, setVisitorsAndEarnings] = useState([]);
+
+  const [chartTitle, setChartTitle] = useState('Density of Participants at parts of Ohio');
 
   return (
     <ParticipantsContext.Provider value={{selectedParticipants,setSelectedParticipants}}>
       <BuildingContext.Provider value={{selectedBuildings,setSelectedBuildings}}>
-        <DateContext.Provider value={{date, setDate}}>
+        <DateTimeContext.Provider value={{dateTime, setDateTime}}>
           <EarningsAndVisitorsContext.Provider value={{visitorsAndEarnings, setVisitorsAndEarnings}}>
-          <div className="bg-gray-100 rounded-lg flex justify-center items-center flex-col py-1 my-2 mx-10">
-            <h1 className="text-xl bold">CSE 578 - 2022 VAST Mini Challenge 1 - Group Project</h1>
-            <h3 className="h3">Heatmap -&gt; Chord Graph , Circular Packing Graph, Animated Scatter Plot -&gt; Bar, Pie CHart</h3>
-          </div>
-          {
-            selectedParticipants.length == 0 ?
-            <Heatmap /> :
-            (visitorsAndEarnings.length == 0 ? <Chord/> : <Radar/>)
-
-          }
+            <Typography variant="h4" component="h1" gutterBottom>
+              {chartTitle}
+            </Typography>
           </EarningsAndVisitorsContext.Provider>
-        </DateContext.Provider>
+        </DateTimeContext.Provider>
       </BuildingContext.Provider >
     </ParticipantsContext.Provider>
   );

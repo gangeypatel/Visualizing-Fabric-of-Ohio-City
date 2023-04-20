@@ -11,9 +11,9 @@ export const BuildingContext = createContext({
     setSelectedBuildings: () => {}
 })
 
-export const DateContext = createContext({
-    date: "2022-03-01",
-    setDate: () => {}
+export const DateTimeContext = createContext({
+    dateTime: "2022-03-01 17",
+    setDateTime: () => {}
 });
 
 export const EarningsAndVisitorsContext = createContext({
