@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext } from "react";
-// import { ParticipantsContext, DateContext } from "../context";
+import { ParticipantsContext, DateContext } from "../context";
 import axios from "axios";
-import rawJsonData from '../data/interActiveScatterPlot.json'
+// import rawJsonData from '../data/interActiveScatterPlot.json'
 const activities = ["AtHome", "Transport", "AtRecreation", "AtRestaurant", "AtWork"];
 const ANIMATION_STEP = 1800;
 const RADIUS_CIRCLE = 5;
@@ -14,10 +14,10 @@ function InteractiveScatter() {
         height: 650
     })
 
-    // const participantContext = useContext(ParticipantsContext)
-    // const participants = participantContext.selectedParticipants
-    // const dateContext = useContext(DateContext)
-    // const date = dateContext.date
+    const participantContext = useContext(ParticipantsContext)
+    const participants = participantContext.selectedParticipants
+    const dateContext = useContext(DateContext)
+    const date = dateContext.date
 
     const d3 = window.d3;
 
@@ -27,13 +27,13 @@ function InteractiveScatter() {
 
     useEffect(() => {
         (async () => {
-            // const rawJsonData = await fetchParticipantConnections(makeQuery(date, participants));
+            const rawJsonData = await fetchParticipantConnections(makeQuery(date, participants));
             const data = restructureData(rawJsonData);
             drawInteractivePlot(data);
         })()
 
-    // }, [participants]);
-    }, []);
+    }, [participants]);
+    // }, []);
 
     
 
