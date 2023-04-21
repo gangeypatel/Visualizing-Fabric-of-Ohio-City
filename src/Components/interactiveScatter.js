@@ -1,9 +1,9 @@
 import { useEffect, useState, useContext } from "react";
 import { ParticipantsContext, DateContext } from "../context";
 import axios from "axios";
-import rawJsonData from '../data/chordDiagram.json'
 const activities = ["AtHome", "Transport", "AtRecreation", "AtRestaurant", "AtWork"];
 const ANIMATION_STEP = 1000;
+const RADIUS_CIRCLE = 5;
 var myTimer;
 
 function InteractiveScatter() {
@@ -26,9 +26,8 @@ function InteractiveScatter() {
     useEffect(() => {
         (async () => {
             const rawJsonData = await fetchParticipantConnections(makeQuery(date, participants));
-            // const data = restructureData(rawJsonData);
-            console.log(rawJsonData);
-            drawInteractivePlot(rawJsonData);
+            const data = restructureData(rawJsonData);
+            drawInteractivePlot(data);
         })()
 
     }, [participants]);
@@ -86,19 +85,20 @@ function InteractiveScatter() {
                         .attr("transform",(d) => {
                             const angle = theta(d) * 180/ Math.PI;
                             if(angle > 90 && angle < 270) {
-                                return `translate(${svgDimention.width/2 + (RADIUS+RADIUS/7)*Math.cos(theta(d))}, ${svgDimention.height/2 + (RADIUS+RADIUS/7)*Math.sin(theta(d))}) rotate(${(theta(d) * 180/ Math.PI) + 180})`;
+                                return `translate(${svgDimention.width/2 + (RADIUS+RADIUS/5)*Math.cos(theta(d))}, ${svgDimention.height/2 + (RADIUS+RADIUS/7)*Math.sin(theta(d))}) rotate(${(theta(d) * 180/ Math.PI) + 180})`;
                             } else {
-                                return `translate(${svgDimention.width/2 + (RADIUS+RADIUS/7)*Math.cos(theta(d))}, ${svgDimention.height/2 + (RADIUS+RADIUS/7)*Math.sin(theta(d))}) rotate(${theta(d) * 180/ Math.PI})`;
+                                return `translate(${svgDimention.width/2 + (RADIUS+RADIUS/5)*Math.cos(theta(d))}, ${svgDimention.height/2 + (RADIUS+RADIUS/7)*Math.sin(theta(d))}) rotate(${theta(d) * 180/ Math.PI})`;
                             }
                         })
                         .style("font-size", 14)
 
         playAnimation();
-        var index = 0;
         function playAnimation() {
+            var index = 0;
             clearInterval (myTimer);
             myTimer = setInterval (function() {
-                drawInteractivePlotUtil(data[index]);
+                const manipulatedData = positionManupilation(data[index]);
+                drawInteractivePlotUtil(manipulatedData);
                 index = (index + 1)%(data.length);
             }, ANIMATION_STEP);
         };
@@ -107,16 +107,16 @@ function InteractiveScatter() {
             const nodes = svg.selectAll(".nodes").data(data);
             nodes.join(
                 enter => enter.append("circle")
-                                .attr("cx", d=>{return svgDimention.width/2 + RADIUS*Math.cos(theta(d.currentmode))})
-                                .attr("cy", d=>{return svgDimention.height/2 + RADIUS*Math.sin(theta(d.currentmode))})
+                                .attr("cx", d=>{return d.x})
+                                .attr("cy", d=>{return d.y})
                                 .attr("r", "5")
                                 .style("fill", (d) => color(d.currentmode))
                                 .attr("stroke", "white")
                                 .attr("class", "nodes"),
 
                 update => update.transition().duration(750)
-                                .attr("cx", d=>{return svgDimention.width/2 + RADIUS*Math.cos(theta(d.currentmode))})
-                                .attr("cy", d=>{return svgDimention.height/2 + RADIUS*Math.sin(theta(d.currentmode))})
+                                .attr("cx", d=>{return d.x})
+                                .attr("cy", d=>{return d.y})
                                 .attr("r", "5")
                                 .style("fill", (d) => color(d.currentmode))
                                 .attr("stroke", "white")
@@ -125,9 +125,60 @@ function InteractiveScatter() {
                 exit => exit.remove()
             );
         }
+
+        function positionManupilation(data) {
+            const activityCounter = categoryCounter(data);
+            const circularCoords = [];
+            activityCounter.map(function(count, index) {
+                circularCoords.push(formCircleAroundCenter(count, 
+                    svgDimention.width/2 + (RADIUS - RADIUS/7)*Math.cos(theta(activities[index])), 
+                    svgDimention.height/2 + (RADIUS - RADIUS/7)*Math.sin(theta(activities[index])), 
+                    RADIUS_CIRCLE));
+            });
+    
+            var pointer = new Array(activities.length).fill(0);
+            data.forEach(point => {
+                const index = activities.indexOf(point["currentmode"]);
+                point["x"] = circularCoords[index][pointer[index]]["x"];
+                point["y"] = circularCoords[index][pointer[index]]["y"];
+                pointer[index] += 1;
+            });
+            return data;
+        }
     }
 
-    
+    function formCircleAroundCenter(numberOfNodes, x, y, radius) {
+        const coord = [{"x":x, "y": y}];
+        var layer = 1;
+        var angleDiff = Math.PI/3;
+        numberOfNodes -= 1;
+        while(numberOfNodes > 0) {
+            for(var i=0; i<2*Math.PI; i += angleDiff) {
+                if(numberOfNodes >= 0) {
+                    coord.push({"x": x + (layer*2)*radius*Math.cos(i), "y":y + (layer*2)*radius*Math.sin(i)});
+                    numberOfNodes -= 1;
+                }
+            }
+            layer += 1;
+            angleDiff /= 2;
+        }
+
+        return coord;
+    }
+
+    function categoryCounter(data) {
+        var count = [];
+        activities.forEach(activity => {
+            var cnt = 0;
+            data.forEach(elem => {
+                if(elem["currentmode"] == activity) {
+                    cnt += 1;
+                }
+            });
+            count.push(cnt);
+        });
+        return count;
+    }
 
     function makeQuery(date, participants) {
         let query = date;
@@ -138,6 +189,15 @@ function InteractiveScatter() {
         return query;
     }
 
+    function restructureData(data) {
+        data.forEach(row => {
+            row.forEach(elem => {
+                elem["x"] = 0;
+                elem["y"] = 0;
+            });
+        });
+        return data;
+    }
 
     return (
         <div className="flex items-center justify-center overflow-hidden">
