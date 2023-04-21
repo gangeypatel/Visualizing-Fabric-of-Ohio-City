@@ -1,10 +1,12 @@
 import { useEffect, useState, useContext } from "react";
-import { ParticipantsContext, DateContext } from "../context";
+// import { ParticipantsContext, DateContext } from "../context";
 import axios from "axios";
+import rawJsonData from '../data/interActiveScatterPlot.json'
 const activities = ["AtHome", "Transport", "AtRecreation", "AtRestaurant", "AtWork"];
-const ANIMATION_STEP = 1000;
+const ANIMATION_STEP = 1800;
 const RADIUS_CIRCLE = 5;
 var myTimer;
+
 
 function InteractiveScatter() {
     const [svgDimention, setSvgDimention] = useState({
@@ -12,10 +14,10 @@ function InteractiveScatter() {
         height: 650
     })
 
-    const participantContext = useContext(ParticipantsContext)
-    const participants = participantContext.selectedParticipants
-    const dateContext = useContext(DateContext)
-    const date = dateContext.date
+    // const participantContext = useContext(ParticipantsContext)
+    // const participants = participantContext.selectedParticipants
+    // const dateContext = useContext(DateContext)
+    // const date = dateContext.date
 
     const d3 = window.d3;
 
@@ -25,26 +27,15 @@ function InteractiveScatter() {
 
     useEffect(() => {
         (async () => {
-            const rawJsonData = await fetchParticipantConnections(makeQuery(date, participants));
+            // const rawJsonData = await fetchParticipantConnections(makeQuery(date, participants));
             const data = restructureData(rawJsonData);
             drawInteractivePlot(data);
         })()
 
-    }, [participants]);
+    // }, [participants]);
+    }, []);
 
-    async function fetchParticipantConnections(query){
-        return await axios.get("http://127.0.0.1:8002/activity/"+ query, {
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-            },
-            })
-            .then((d) => {
-                return d.data;
-            }).catch((e) => {
-                console.log(e.message)
-                return [];
-            })
-    }
+    
 
     function calculateSVGDimentions() {
         const windowWidth = window.innerWidth;
@@ -59,6 +50,16 @@ function InteractiveScatter() {
     function drawInteractivePlot(data) {
         const svg = d3.select("#interactive_svg").attr("width", svgDimention.width).attr("height", svgDimention.height);
         const RADIUS = svgDimention.height/2.5;
+        const circle = svg.append("circle")
+            .attr("cx", svgDimention.width / 2)
+            .attr("cy", svgDimention.height / 2)
+            .attr("r", RADIUS/1.05)
+            .style("fill", "none")
+            .style("stroke", "black")
+            .style("stroke-width", "3px")
+            .style("opacity", 0.75);
+
+        
 
         const theta = d3.scaleBand()
                     .range([0, 2 * Math.PI])
@@ -85,12 +86,18 @@ function InteractiveScatter() {
                         .attr("transform",(d) => {
                             const angle = theta(d) * 180/ Math.PI;
                             if(angle > 90 && angle < 270) {
-                                return `translate(${svgDimention.width/2 + (RADIUS+RADIUS/5)*Math.cos(theta(d))}, ${svgDimention.height/2 + (RADIUS+RADIUS/5)*Math.sin(theta(d))}) rotate(${(theta(d) * 180/ Math.PI) + 180})`;
+                                return `translate(${svgDimention.width/2 + (RADIUS+RADIUS/5)*Math.cos(theta(d))*0.98}, ${svgDimention.height/2 + (RADIUS+RADIUS/7)*Math.sin(theta(d))*0.98})`;
                             } else {
-                                return `translate(${svgDimention.width/2 + (RADIUS+RADIUS/5)*Math.cos(theta(d))}, ${svgDimention.height/2 + (RADIUS+RADIUS/5)*Math.sin(theta(d))}) rotate(${theta(d) * 180/ Math.PI})`;
+                                return `translate(${svgDimention.width/2 + (RADIUS+RADIUS/5)*Math.cos(theta(d))*0.98}, ${svgDimention.height/2 + (RADIUS+RADIUS/7)*Math.sin(theta(d))*0.98})`;
                             }
                         })
                         .style("font-size", 14)
+
+                        const simulation = d3.forceSimulation(data)
+        .force("collision", d3.forceCollide().radius(7).strength(0.25)) // Add collision force to prevent overlap
+        .force("x", d3.forceX().strength(0.1).x(d => svgDimention.width/2 + (RADIUS+RADIUS/5)*Math.cos(theta(d.currentmode))*0.75)) // Add x-axis centering force
+        .force("y", d3.forceY().strength(0.1).y(d => svgDimention.height/2 + (RADIUS+RADIUS/7)*Math.sin(theta(d.currentmode))*0.75)) // Add y-axis centering force
+        .force("link", d3.forceLink().id(d => d.currentmode).distance(50).strength(1))
 
         playAnimation();
         function playAnimation() {
@@ -105,25 +112,35 @@ function InteractiveScatter() {
 
         function drawInteractivePlotUtil(data) {
             const nodes = svg.selectAll(".nodes").data(data);
+
+            
             nodes.join(
                 enter => enter.append("circle")
+                                .attr("class", "nodes")
+                                .attr("r", "5")
                                 .attr("cx", d=>{return d.x})
                                 .attr("cy", d=>{return d.y})
-                                .attr("r", "5")
                                 .style("fill", (d) => color(d.currentmode))
                                 .attr("stroke", "white")
-                                .attr("class", "nodes"),
-
-                update => update.transition().duration(750)
+                                .attr("stroke-width", 1),
+                update => update
+                                .attr("class", "nodes")
+                                .attr("r", "5")
                                 .attr("cx", d=>{return d.x})
                                 .attr("cy", d=>{return d.y})
-                                .attr("r", "5")
-                                .style("fill", (d) => color(d.currentmode))
-                                .attr("stroke", "white")
-                                .attr("class", "nodes"),
-
+                                .style("fill", (d) => color(d.currentmode)),
                 exit => exit.remove()
             );
+            simulation.nodes(data).on("tick", ticked);
+            simulation.alpha(0.9).restart();
+
+            function ticked() {
+                nodes.transition()
+                    .duration(750)
+                    .ease(d3.easeLinear)
+                    .attr("cx", d => {return d.x})
+                    .attr("cy", d => {return d.y});
+    }
         }
 
         function positionManupilation(data) {
@@ -197,6 +214,20 @@ function InteractiveScatter() {
             });
         });
         return data;
+    }
+
+    async function fetchParticipantConnections(query){
+        return await axios.get("http://127.0.0.1:8002/activity/"+ query, {
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+            },
+            })
+            .then((d) => {
+                return d.data;
+            }).catch((e) => {
+                console.log(e.message)
+                return [];
+            })
     }
 
     return (
