@@ -4,19 +4,30 @@ import { EarningsAndVisitorsContext } from "../context";
 
 function Radar() {
   const [svgDimention, setSvgDimention] = useState({
-    width: 800,
-    height: 650,
+    width: null,
+    height: null,
   });
 
   const earningsAndVisitorContext = useContext(EarningsAndVisitorsContext);
   const originalData = earningsAndVisitorContext.visitorsAndEarnings;
 
   const d3 = window.d3;
+
   useEffect(() => {
-    calculateSVGDimentions();
+    setTimeout(() => {
+      calculateSVGDimentions();
+    }, 1000);
+  }, []);
+
+  useEffect(() => {
+    if (
+      typeof svgDimention.width !== "number" ||
+      typeof svgDimention.height !== "number"
+    )
+      return;
     const data = modifyData(originalData);
     drawRadarChart(data);
-  }, []);
+  }, [originalData, svgDimention]);
 
   function modifyData(rawJsonData) {
     const spendingValues = [];
@@ -34,12 +45,16 @@ function Radar() {
   }
 
   function calculateSVGDimentions() {
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
+    const svg = d3.select("#radar_svg");
+    if (svg.node() === null) return;
+    const margin = 30;
+    const dimentions = svg.node().parentNode.getBoundingClientRect();
+    const parentHeight = dimentions.height - margin;
+    const parentWidth = dimentions.width - margin;
 
     setSvgDimention({
-      width: windowWidth - 100,
-      height: windowHeight - 100,
+      width: parentWidth,
+      height: parentHeight,
     });
   }
 
@@ -91,7 +106,6 @@ function Radar() {
           .style("opacity", 1.0)
           .attr("stroke", "darkblue");
         const spending = data[i];
-        console.log(spending);
         // console.log(d);
         tooltip
           .text(`Spending: ${d3.format(".2f")(spending)}`)
@@ -180,8 +194,6 @@ function Radar() {
       return [center[0] + r * Math.cos(angle), center[1] + r * Math.sin(angle)];
     });
 
-    console.log(coords);
-
     const coordsClosed = [...coords, coords[0]];
     // console.log(coordsClosed);
 
@@ -243,13 +255,11 @@ function Radar() {
   }
 
   return (
-    <div className="flex items-center justify-center overflow-hidden">
-      <svg
-        id="radar_svg"
-        width={svgDimention.width}
-        height={svgDimention.height}
-      ></svg>
-    </div>
+    <svg
+      id="radar_svg"
+      width={svgDimention.width}
+      height={svgDimention.height}
+    ></svg>
   );
 }
 

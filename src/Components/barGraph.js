@@ -1,48 +1,57 @@
-import { useEffect, useRef, useContext } from "react";
-import { select, scaleLinear, scaleBand } from "d3";
-import * as d3 from "d3";
+import { useEffect, useState, useContext } from "react";
 import { EarningsAndVisitorsContext } from "../context";
 
 function BarGraph() {
   var margin = { top: 20, right: 30, bottom: 80, left: 30 };
-  let data = [];
-  var x, y, svg, g;
-  var width = 800;
-  var height = 400;
+  const d3 = window.d3;
+  let x, y, svg, g;
+  const [svgDimention, setSvgDimention] = useState({
+    width: null,
+    height: null,
+  });
 
   const earningsAndVisitorContext = useContext(EarningsAndVisitorsContext);
   const originalData = earningsAndVisitorContext.visitorsAndEarnings;
 
-  const svgRef = useRef();
-
-  data = Object.entries(originalData).map(([hour, { participants }]) => {
-    let displayHour;
-    if (hour == 0) {
-      displayHour = "12 AM";
-    } else if (hour > 12) {
-      displayHour = (hour % 12) + " PM";
-    } else if (hour < 12) {
-      displayHour = hour + " AM";
-    } else {
-      displayHour = hour + " PM";
-    }
-
-    return {
-      hour: displayHour,
-      totalParticipants: participants.length,
-    };
-  });
-
   useEffect(() => {
-    svg = select(svgRef.current).attr("width", width).attr("height", height);
     calculateSVGDimentions();
-    drawLineGraph();
-    drawBarGraph();
   }, []);
 
-  function drawBarGraph() {
-    const tooltip = d3
-      .select("body")
+  useEffect(() => {
+    if (
+      typeof svgDimention.width !== "number" ||
+      typeof svgDimention.height !== "number"
+    )
+      return;
+    const data = Object.entries(originalData).map(
+      ([hour, { participants }]) => {
+        let displayHour;
+        if (hour == 0) {
+          displayHour = "12 AM";
+        } else if (hour > 12) {
+          displayHour = (hour % 12) + " PM";
+        } else if (hour < 12) {
+          displayHour = hour + " AM";
+        } else {
+          displayHour = hour + " PM";
+        }
+
+        return {
+          hour: displayHour,
+          totalParticipants: participants.length,
+        };
+      }
+    );
+    svg = d3
+      .select("#bargraph_svg")
+      .attr("width", svgDimention.width)
+      .attr("height", svgDimention.height);
+    drawLineGraph(data);
+    drawBarGraph(data);
+  }, [originalData, svgDimention]);
+
+  function drawBarGraph(data) {
+    const tooltip = svg
       .append("div")
       .style("opacity", 0)
       .attr("class", "tooltip")
@@ -56,24 +65,28 @@ function BarGraph() {
       .style("left", `${80}px`)
       .style("top", `${80}px`);
 
-    x = scaleBand()
+    x = d3
+      .scaleBand()
       .domain(data.map(({ hour }) => hour))
-      .range([margin.left, width - margin.right])
+      .range([margin.left, svgDimention.width - margin.right])
       .padding(0.1);
 
-    y = scaleLinear()
+    y = d3
+      .scaleLinear()
       .domain([
         0,
         Math.max(...data.map(({ totalParticipants }) => totalParticipants)),
       ])
-      .range([height - margin.bottom, margin.top]);
+      .range([svgDimention.height - margin.bottom, margin.top]);
 
     g = svg.select("g");
 
     g.append("text")
       .attr(
         "transform",
-        `translate(${width / 2}, ${height - margin.bottom + 50})`
+        `translate(${svgDimention.width / 2}, ${
+          svgDimention.height - margin.bottom + 50
+        })`
       )
       .attr("text-anchor", "middle")
       .text("Time (hour)");
@@ -81,7 +94,7 @@ function BarGraph() {
     g.append("text")
       .attr("transform", "rotate(-90)")
       .attr("y", 0 - margin.left)
-      .attr("x", 0 - height / 2.5)
+      .attr("x", 0 - svgDimention.height / 2.5)
       .attr("dy", "1em")
       .attr("text-anchor", "middle")
       .text("Total Customers");
@@ -98,7 +111,8 @@ function BarGraph() {
       .attr("width", x.bandwidth())
       .attr(
         "height",
-        ({ totalParticipants }) => height - y(totalParticipants) - margin.bottom
+        ({ totalParticipants }) =>
+          svgDimention.height - y(totalParticipants) - margin.bottom
       )
       .attr("opacity", 0.5)
       .on("mouseover", function (e, d) {
@@ -121,11 +135,11 @@ function BarGraph() {
         tooltip.style("opacity", 0);
       });
 
-    g.selectAll(".circle")
+    g.selectAll(".bar_circle")
       .data(data)
       .enter()
       .append("circle")
-      .attr("class", "circle")
+      .attr("class", "bar_circle")
       .attr("r", "5px")
       .attr("fill", "#69b3a2")
       .attr("cx", ({ hour }) => x(hour) + x.bandwidth() / 2)
@@ -133,17 +147,19 @@ function BarGraph() {
       .attr("opacity", 0.5);
   }
 
-  function drawLineGraph() {
-    x = scaleBand()
+  function drawLineGraph(data) {
+    x = d3
+      .scaleBand()
       .domain(data.map(({ hour }) => hour))
-      .range([margin.left, width - margin.right]);
+      .range([margin.left, svgDimention.width - margin.right]);
 
-    y = scaleLinear()
+    y = d3
+      .scaleLinear()
       .domain([
         0,
         Math.max(...data.map(({ totalParticipants }) => totalParticipants)),
       ])
-      .range([height - margin.bottom, margin.top]);
+      .range([svgDimention.height - margin.bottom, margin.top]);
 
     g = svg
       .append("g")
@@ -151,7 +167,10 @@ function BarGraph() {
 
     g.append("g")
       .attr("class", "axis axis--x")
-      .attr("transform", `translate(0, ${height - margin.bottom} )`)
+      .attr(
+        "transform",
+        `translate(0, ${svgDimention.height - margin.bottom} )`
+      )
       .call(d3.axisBottom(x))
       .call((g) =>
         g
@@ -191,23 +210,25 @@ function BarGraph() {
   }
 
   function calculateSVGDimentions() {
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
-    width = windowWidth * 0.5;
-    height = windowHeight - 200;
-    svg.attr("width", width).attr("height", height);
+    const svg = d3.select("#bargraph_svg");
+    if (svg.node() === null) return;
+    const margin = 30;
+    const dimentions = svg.node().parentNode.getBoundingClientRect();
+    const parentHeight = dimentions.height - margin;
+    const parentWidth = dimentions.width - margin;
+
+    setSvgDimention({
+      width: parentWidth,
+      height: parentHeight,
+    });
   }
 
   return (
-    <>
-      <div className="flex item-center justify-center font::black bold">
-        {" "}
-        It's Smit Patel{" "}
-      </div>
-      <div className="flex items-center justify-center overflow-hidden align-center border::1px solid black">
-        <svg ref={svgRef} id="bargraph"></svg>
-      </div>
-    </>
+    <svg
+      id="bargraph_svg"
+      width={svgDimention.width}
+      height={svgDimention.height}
+    ></svg>
   );
 }
 

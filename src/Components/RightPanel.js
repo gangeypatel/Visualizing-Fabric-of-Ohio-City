@@ -19,6 +19,8 @@ import Avatar from "@mui/material/Avatar";
 import { blueGrey } from "@mui/material/colors";
 import Button from "@mui/material/Button";
 import { useEffect } from "react";
+import Tooltip from "@mui/material/Tooltip";
+import Radar from "./radar";
 
 export default function RightPanel({
   setPageTo = () => {},
@@ -167,18 +169,26 @@ export default function RightPanel({
     <div className="flex flex-col justify-evenly h-full">
       {rightPanelComponents.map((component, i) => {
         return (
-          <Card
-            key={i}
-            style={{ height: "450px" }}
-            className="w-full overflow-hidden take-cover cursor-pointer flex items-center justify-center"
-            onClick={() => {
-              changeFocusedChartComponent(component);
-            }}
-          >
-            {component}
-          </Card>
+          <Tooltip title={"Click to enlarge"} key={i} arrow placement="top">
+            <Card
+              key={i}
+              style={{ height: "450px" }}
+              className="w-full overflow-hidden take-cover cursor-pointer flex items-center justify-center"
+              onClick={() => {
+                changeFocusedChartComponent(component);
+              }}
+            >
+              {component}
+            </Card>
+          </Tooltip>
         );
       })}
+    </div>
+  );
+
+  const thirdPageComponent = (
+    <div className="flex-1 bg-white h-full border border-black-50 rounded-lg">
+      <Radar />
     </div>
   );
 
@@ -189,7 +199,7 @@ export default function RightPanel({
       case 2:
         return secondPageComponent;
       case 3:
-        return <></>;
+        return <> </>;
       default:
         return firstPageComponent;
     }
@@ -197,12 +207,16 @@ export default function RightPanel({
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Container
-        maxWidth="sm"
-        className="px-2 rounded-lg h-full flex flex-col justify-between"
-      >
-        {getComponentByPage()}
-      </Container>
+      {currentPage === 3 ? (
+        thirdPageComponent
+      ) : (
+        <Container
+          maxWidth="sm"
+          className="px-2 rounded-lg h-full flex flex-col justify-between"
+        >
+          {getComponentByPage()}
+        </Container>
+      )}
     </LocalizationProvider>
   );
 }

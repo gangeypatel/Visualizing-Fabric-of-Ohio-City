@@ -104,7 +104,6 @@ function Circular() {
           return d.data;
         });
       earningsAndVisitorContext.setVisitorsAndEarnings(result);
-      console.log(result);
     }
 
     var simulation = d3
@@ -137,7 +136,7 @@ function Circular() {
         "collide",
         d3
           .forceCollide()
-          .strength(0.2)
+          .strength(0.1)
           .radius(function (d) {
             return size(d["maxOccupancy"] * 1.5);
           })
