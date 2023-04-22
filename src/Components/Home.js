@@ -25,7 +25,11 @@ function Home() {
   const [visitorsAndEarnings, setVisitorsAndEarnings] = useState([]);
   const [rightPanelComponents, setRightPanelComponents] = useState([]);
 
-  const allPageComponents = [<InteractiveScatter />, <Chord />, <Circular />];
+  const allPageComponents = [
+    <InteractiveScatter />,
+    <Chord />,
+    <Circular setPageTo={changePageTo} />,
+  ];
 
   const [chartTitle, setChartTitle] = useState(
     "Density Map of Participants at parts of Ohio"

@@ -1,12 +1,14 @@
 import { useEffect, useState, useContext } from "react";
 import { ParticipantsContext, DateTimeContext } from "../context";
 import axios from "axios";
+import ProgressBlock from "./progressBlock";
 
 function Chord() {
   const [svgDimention, setSvgDimention] = useState({
     width: null,
     height: null,
   });
+  const [hideProgressBlock, setHideProgressBlock] = useState(false);
 
   const participantContext = useContext(ParticipantsContext);
   const participants = participantContext.selectedParticipants;
@@ -32,6 +34,7 @@ function Chord() {
       );
       const data = restructureData(rawJsonData);
       drawChordChart(data);
+      setHideProgressBlock(true);
     })();
   }, [participants, svgDimention]);
 
@@ -218,51 +221,55 @@ function Chord() {
                 : 0;
             });
 
-            // Highlight selected node and its connections
-            const circleSelectionData = svg.selectAll(".chord_nodes");
-            const circleSelectionDOM = circleSelectionData.nodes();
-            for (let itr = 0; circleSelectionDOM[itr]; itr++) {
-                try {
-                    const currentNode = circleSelectionData._groups[0][itr];
-                    const currentNodeName = currentNode.__data__["name"];
-                    if (connections.has(currentNodeName)) {
-                    svg.select("#chord_node_" + currentNodeName).style("opacity", 1);
-                    } else {
-                    svg.select("#chord_node_" + currentNodeName).style("opacity", 0.2);
-                    }
-                    // Labels
-                    labels
-                        .style("font-size", function (label_d) {
-                        return connections.has(label_d.name) ? 15 : 2;
-                        })
-                        .attr("transform", (d) => {
-                        const angle = (theta(d.name) * 180) / Math.PI;
-                        if (angle > 90 && angle < 270) {
-                            return `translate(${
-                            svgDimention.width / 2 +
-                            (RADIUS + RADIUS / 5) * Math.cos(theta(d.name))
-                            }, ${
-                            svgDimention.height / 2 +
-                            (RADIUS + RADIUS / 5) * Math.sin(theta(d.name))
-                            }) rotate(${(theta(d.name) * 180) / Math.PI + 180})`;
-                        } else {
-                            return `translate(${
-                            svgDimention.width / 2 +
-                            (RADIUS + RADIUS / 5) * Math.cos(theta(d.name))
-                            }, ${
-                            svgDimention.height / 2 +
-                            (RADIUS + RADIUS / 5) * Math.sin(theta(d.name))
-                            }) rotate(${(theta(d.name) * 180) / Math.PI})`;
-                        }
-                    });
-                } catch (err) {
-                console.log(err);
-                }
-        } 
+          // Highlight selected node and its connections
+          const circleSelectionData = svg.selectAll(".chord_nodes");
+          const circleSelectionDOM = circleSelectionData.nodes();
+          for (let itr = 0; circleSelectionDOM[itr]; itr++) {
+            try {
+              const currentNode = circleSelectionData._groups[0][itr];
+              const currentNodeName = currentNode.__data__["name"];
+              if (connections.has(currentNodeName)) {
+                svg
+                  .select("#chord_node_" + currentNodeName)
+                  .style("opacity", 1);
+              } else {
+                svg
+                  .select("#chord_node_" + currentNodeName)
+                  .style("opacity", 0.2);
+              }
+              // Labels
+              labels
+                .style("font-size", function (label_d) {
+                  return connections.has(label_d.name) ? 15 : 2;
+                })
+                .attr("transform", (d) => {
+                  const angle = (theta(d.name) * 180) / Math.PI;
+                  if (angle > 90 && angle < 270) {
+                    return `translate(${
+                      svgDimention.width / 2 +
+                      (RADIUS + RADIUS / 5) * Math.cos(theta(d.name))
+                    }, ${
+                      svgDimention.height / 2 +
+                      (RADIUS + RADIUS / 5) * Math.sin(theta(d.name))
+                    }) rotate(${(theta(d.name) * 180) / Math.PI + 180})`;
+                  } else {
+                    return `translate(${
+                      svgDimention.width / 2 +
+                      (RADIUS + RADIUS / 5) * Math.cos(theta(d.name))
+                    }, ${
+                      svgDimention.height / 2 +
+                      (RADIUS + RADIUS / 5) * Math.sin(theta(d.name))
+                    }) rotate(${(theta(d.name) * 180) / Math.PI})`;
+                  }
+                });
+            } catch (err) {
+              console.log(err);
+            }
+          }
         } catch (err) {
-            console.log(err);
+          console.log(err);
         }
-    })
+      })
       .on("mouseout", function (d) {
         try {
           nodes.style("opacity", 1);
@@ -334,11 +341,14 @@ function Chord() {
   }
 
   return (
-    <svg
-      id="chord_svg"
-      width={svgDimention.width}
-      height={svgDimention.height}
-    ></svg>
+    <>
+      <svg
+        id="chord_svg"
+        width={svgDimention.width}
+        height={svgDimention.height}
+      ></svg>
+      <ProgressBlock color="primary" hide={hideProgressBlock} />
+    </>
   );
 }
 

@@ -18,7 +18,6 @@ import Paper from "@mui/material/Paper";
 import Avatar from "@mui/material/Avatar";
 import { blueGrey } from "@mui/material/colors";
 import Button from "@mui/material/Button";
-import { useEffect } from "react";
 import Tooltip from "@mui/material/Tooltip";
 import Radar from "./radar";
 
@@ -34,14 +33,6 @@ export default function RightPanel({
 
   const participantsContext = useContext(ParticipantsContext);
   const selectedParticipants = participantsContext.selectedParticipants;
-  const earningsAndVisitorsContext = useContext(EarningsAndVisitorsContext);
-  const visitorsAndEarnings = earningsAndVisitorsContext.visitorsAndEarnings;
-
-  useEffect(() => {
-    if (visitorsAndEarnings.length > 0) {
-      setPageTo(3);
-    }
-  }, [visitorsAndEarnings]);
 
   function changeDate(djsObj) {
     const date = djsObj.format("YYYY-MM-DD");
@@ -173,7 +164,7 @@ export default function RightPanel({
             <Card
               key={i}
               style={{ height: "450px" }}
-              className="w-full overflow-hidden take-cover cursor-pointer flex items-center justify-center"
+              className="relative w-full overflow-hidden take-cover cursor-pointer flex items-center justify-center"
               onClick={() => {
                 changeFocusedChartComponent(component);
               }}
@@ -187,7 +178,7 @@ export default function RightPanel({
   );
 
   const thirdPageComponent = (
-    <div className="flex-1 bg-white h-full border border-black-50 rounded-lg">
+    <div className="flex-1 relative bg-white flex items-center justify-center h-full border border-black-50 rounded-lg">
       <Radar />
     </div>
   );

@@ -5,14 +5,16 @@ import {
   DateTimeContext,
   EarningsAndVisitorsContext,
 } from "../context";
+import ProgressBlock from "./progressBlock";
 
-function Circular() {
+function Circular({ setPageTo = () => {} }) {
   const d3 = window.d3;
 
   const [svgDimention, setSvgDimention] = useState({
     width: null,
     height: null,
   });
+  const [hideProgressBlock, setHideProgressBlock] = useState(false);
 
   let svg;
 
@@ -39,6 +41,7 @@ function Circular() {
   }, []);
 
   useEffect(() => {
+    setHideProgressBlock(false);
     if (
       typeof svgDimention.width !== "number" ||
       typeof svgDimention.height !== "number"
@@ -50,6 +53,7 @@ function Circular() {
       .attr("height", svgDimention.height);
 
     drawcircularmap();
+    setHideProgressBlock(true);
   }, [data, svgDimention]);
 
   function drawcircularmap() {
@@ -98,6 +102,8 @@ function Circular() {
       });
 
     async function fetchBusinessData(businessId) {
+      setPageTo(3);
+      earningsAndVisitorContext.setVisitorsAndEarnings([]);
       const result = await axios
         .get("http://127.0.0.1:8002/barchart/" + date + "&" + businessId)
         .then((d) => {
@@ -183,11 +189,14 @@ function Circular() {
   }
 
   return (
-    <svg
-      id="circular_svg"
-      width={svgDimention.width}
-      height={svgDimention.height}
-    ></svg>
+    <>
+      <svg
+        id="circular_svg"
+        width={svgDimention.width}
+        height={svgDimention.height}
+      ></svg>
+      <ProgressBlock color="primary" hide={hideProgressBlock} />
+    </>
   );
 }
 

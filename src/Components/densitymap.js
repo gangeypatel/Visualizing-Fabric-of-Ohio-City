@@ -11,11 +11,14 @@ import {
   DateTimeContext,
 } from "../context";
 import Lasso from "../helpers/lasso";
+import ProgressBlock from "./progressBlock";
 
 function DensityMap() {
   const geoJSONdata = rawBaseMapVectorPoints;
 
   const [participantsLocation, setParticipantsLocation] = useState([]);
+  const [hideProgressBlock, setHideProgressBlock] = useState(false);
+
   const participantContext = useContext(ParticipantsContext);
   const buildingContext = useContext(BuildingContext);
   const dateTimeContext = useContext(DateTimeContext);
@@ -78,6 +81,7 @@ function DensityMap() {
 
   useEffect(() => {
     (async () => {
+      setHideProgressBlock(false);
       const rawParticipantsLocation = await fetchNewParticipantsData();
       await modifyParticipantsData(rawParticipantsLocation);
     })();
@@ -88,6 +92,7 @@ function DensityMap() {
     initLasso();
     onLassoStart();
     onLassoEnd();
+    setHideProgressBlock(true);
   }, [participantsLocation]);
 
   async function fetchNewParticipantsData() {
@@ -341,11 +346,14 @@ function DensityMap() {
   }
 
   return (
-    <svg
-      id="densitymap_svg"
-      width={svgDimention.width}
-      height={svgDimention.height}
-    ></svg>
+    <>
+      <svg
+        id="densitymap_svg"
+        width={svgDimention.width}
+        height={svgDimention.height}
+      ></svg>
+      <ProgressBlock color="secondary" hide={hideProgressBlock} />
+    </>
   );
 }
 

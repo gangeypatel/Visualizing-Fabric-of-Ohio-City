@@ -1,12 +1,13 @@
 import { useEffect, useState, useContext } from "react";
-// import rawJsonData from '../data/BarChartPieChart.json'
 import { EarningsAndVisitorsContext } from "../context";
+import ProgressBlock from "./progressBlock";
 
 function Radar() {
   const [svgDimention, setSvgDimention] = useState({
     width: null,
     height: null,
   });
+  const [hideProgressBlock, setHideProgressBlock] = useState(false);
 
   const earningsAndVisitorContext = useContext(EarningsAndVisitorsContext);
   const originalData = earningsAndVisitorContext.visitorsAndEarnings;
@@ -14,6 +15,7 @@ function Radar() {
   const d3 = window.d3;
 
   useEffect(() => {
+    setHideProgressBlock(false);
     setTimeout(() => {
       calculateSVGDimentions();
     }, 1000);
@@ -22,11 +24,13 @@ function Radar() {
   useEffect(() => {
     if (
       typeof svgDimention.width !== "number" ||
-      typeof svgDimention.height !== "number"
+      typeof svgDimention.height !== "number" ||
+      originalData.length === 0
     )
       return;
     const data = modifyData(originalData);
     drawRadarChart(data);
+    setHideProgressBlock(true);
   }, [originalData, svgDimention]);
 
   function modifyData(rawJsonData) {
@@ -86,10 +90,9 @@ function Radar() {
       .append("g")
       .attr("class", "axis");
 
-    const tooltip = svg
-      .append("text")
-      .style("visibility", "hidden")
-      .style("font-size", "16px");
+    let tooltip = d3.select("#tooltip");
+    if (tooltip.empty())
+      tooltip = d3.select("body").append("div").attr("id", "tooltip");
 
     axis
       .append("line")
@@ -99,32 +102,43 @@ function Radar() {
       .attr("y2", (d, i) => radius * Math.sin(angleSlice * i - Math.PI / 2))
       .attr("stroke", "darkblue")
       .style("opacity", 0.3)
-      .on("mouseover", function (d, i) {
+      .on("mouseover", function (e, i) {
+        tooltip
+          .style("opacity", 0)
+          .style("background-color", "#00b0ff20")
+          .style("border", "solid")
+          .style("border-color", "#00b0ff")
+          .style("border-width", "1px")
+          .style("border-radius", "5px")
+          .style("font-size", "18px")
+          .style("padding", "8px")
+          .style("position", "absolute");
         d3.select(this)
           .style("stroke", "darkblue")
-          .style("stroke-width", "3px")
-          .style("opacity", 1.0)
+          .style("stroke-width", "4px")
+          .style("opacity", 0.5)
           .attr("stroke", "darkblue");
         const spending = data[i];
-        // console.log(d);
+        const svgNodeDimentions = svg.node().getBoundingClientRect();
         tooltip
-          .text(`Spending: ${d3.format(".2f")(spending)}`)
-          .style("visibility", "visible")
-          .attr("x", 630)
-          .attr("y", 54);
+          .html(`Spending: ${d3.format(".2f")(spending)}`)
+          .style("opacity", 1)
+          .style("position", "absolute")
+          .style(
+            "left",
+            svgNodeDimentions.left +
+              svgDimention.width / 2 -
+              tooltip.node().getBoundingClientRect().width / 2 +
+              "px"
+          )
+          .style("top", svgNodeDimentions.top + svgDimention.height / 4 + "px");
       })
-
-      // .on("mousemove", function(d,i) {
-      //     tooltip.attr("x", d.pageX)
-      //         .attr("y", d.pageY);
-      // })
       .on("mouseout", function () {
         d3.select(this)
           .style("stroke", "darkblue")
           .style("stroke-width", "1px")
           .style("opacity", 0.3);
-
-        tooltip.style("visibility", "hidden");
+        tooltip.style("opacity", 0);
       })
       .transition()
       .duration(3000)
@@ -176,8 +190,8 @@ function Radar() {
       .attr("r", radius)
       .style("fill", "none")
       .style("stroke", "black")
-      .style("stroke-width", "12px")
-      .style("opacity", 0.75);
+      .style("stroke-width", "4px")
+      .style("opacity", 0.5);
 
     const minValue = Math.min(...data);
     const maxValue = Math.max(...data);
@@ -195,25 +209,19 @@ function Radar() {
     });
 
     const coordsClosed = [...coords, coords[0]];
-    // console.log(coordsClosed);
-
-    var color = "#D4C8BE";
-
-    //
-    // #C7C7BB
 
     const path = svg
       .append("path")
       .datum(coordsClosed)
       .attr("d", d3.line())
-      .style("fill", color)
-      .style("stroke", "#3D405B")
-      .style("stroke-width", "2px")
+      .style("fill", "#9c27b040")
+      .style("stroke", "#9c27b0")
+      .style("stroke-width", "1px")
       .style("opacity", 0.8)
       .on("mouseover", function () {
         d3.select(this)
-          .style("stroke", "black")
-          .style("stroke-width", "5px")
+          .style("stroke", "#9c27b0")
+          .style("stroke-width", "2px")
           .style("opacity", 1.0);
 
         // const spending = data[i];
@@ -221,8 +229,8 @@ function Radar() {
       })
       .on("mouseout", function () {
         d3.select(this)
-          .style("stroke", "black")
-          .style("stroke-width", "2px")
+          .style("stroke", "#9c27b0")
+          .style("stroke-width", "1px")
           .style("opacity", 0.8);
       });
 
@@ -255,11 +263,14 @@ function Radar() {
   }
 
   return (
-    <svg
-      id="radar_svg"
-      width={svgDimention.width}
-      height={svgDimention.height}
-    ></svg>
+    <>
+      <svg
+        id="radar_svg"
+        width={svgDimention.width}
+        height={svgDimention.height}
+      ></svg>
+      <ProgressBlock color="primary" hide={hideProgressBlock} />
+    </>
   );
 }
 

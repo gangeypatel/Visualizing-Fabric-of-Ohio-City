@@ -1,5 +1,6 @@
 import { useEffect, useState, useContext } from "react";
 import { EarningsAndVisitorsContext } from "../context";
+import ProgressBlock from "./progressBlock";
 
 function BarGraph() {
   var margin = { top: 20, right: 30, bottom: 80, left: 30 };
@@ -9,6 +10,7 @@ function BarGraph() {
     width: null,
     height: null,
   });
+  const [hideProgressBlock, setHideProgressBlock] = useState(false);
 
   const earningsAndVisitorContext = useContext(EarningsAndVisitorsContext);
   const originalData = earningsAndVisitorContext.visitorsAndEarnings;
@@ -18,9 +20,11 @@ function BarGraph() {
   }, []);
 
   useEffect(() => {
+    setHideProgressBlock(false);
     if (
       typeof svgDimention.width !== "number" ||
-      typeof svgDimention.height !== "number"
+      typeof svgDimention.height !== "number" ||
+      originalData.length === 0
     )
       return;
     const data = Object.entries(originalData).map(
@@ -46,24 +50,17 @@ function BarGraph() {
       .select("#bargraph_svg")
       .attr("width", svgDimention.width)
       .attr("height", svgDimention.height);
+    svg.selectAll("*").remove();
     drawLineGraph(data);
     drawBarGraph(data);
+    setHideProgressBlock(true);
   }, [originalData, svgDimention]);
 
   function drawBarGraph(data) {
-    const tooltip = svg
-      .append("div")
-      .style("opacity", 0)
-      .attr("class", "tooltip")
-      .style("background-color", "white")
-      .style("border", "solid")
-      .style("border-width", "1px")
-      .style("border-radius", "5px")
-      .style("font-size", "10px")
-      .style("padding", "8px")
-      .style("position", "absolute")
-      .style("left", `${80}px`)
-      .style("top", `${80}px`);
+    let tooltip = d3.select("#tooltip");
+
+    if (tooltip.empty())
+      tooltip = d3.select("body").append("div").attr("id", "tooltip");
 
     x = d3
       .scaleBand()
@@ -114,8 +111,21 @@ function BarGraph() {
         ({ totalParticipants }) =>
           svgDimention.height - y(totalParticipants) - margin.bottom
       )
-      .attr("opacity", 0.5)
+      .attr("stroke", "#69b3a2")
+      .attr("stroke-width", 1)
+      .attr("fill", "#69b3a220")
       .on("mouseover", function (e, d) {
+        tooltip
+          .style("opacity", 0)
+          .style("background-color", "#00b0ff05")
+          .style("border", "solid")
+          .style("border-color", "#00b0ff")
+          .style("border-width", "1px")
+          .style("border-radius", "5px")
+          .style("font-size", "14px")
+          .style("padding", "8px")
+          .style("position", "absolute");
+        d3.select(this).attr("fill", "#69b3a2");
         tooltip
           .html(
             `Time: <I><B> ${d.hour}</B></I><br> Total Customers: <I><B> ${d.totalParticipants}</B></I>`
@@ -126,6 +136,7 @@ function BarGraph() {
           .style("top", `${e.clientY + 80}px`);
       })
       .on("mousemove", function (e, d) {
+        d3.select(this).attr("fill", "#69b3a220");
         tooltip
           .style("left", e.clientX + 20 + "px")
           .style("top", e.clientY + 20 + "px");
@@ -141,7 +152,7 @@ function BarGraph() {
       .append("circle")
       .attr("class", "bar_circle")
       .attr("r", "5px")
-      .attr("fill", "#69b3a2")
+      .attr("fill", "#4dabf5")
       .attr("cx", ({ hour }) => x(hour) + x.bandwidth() / 2)
       .attr("cy", ({ totalParticipants }) => y(totalParticipants))
       .attr("opacity", 0.5);
@@ -197,7 +208,7 @@ function BarGraph() {
       .datum(data)
       .attr("fill", "none")
       .attr("opacity", ".8")
-      .attr("stroke", "#69b3a2")
+      .attr("stroke", "#4dabf5")
       .attr("stroke-width", "2px")
       .attr("stroke-linejoin", "round")
       .attr(
@@ -224,11 +235,14 @@ function BarGraph() {
   }
 
   return (
-    <svg
-      id="bargraph_svg"
-      width={svgDimention.width}
-      height={svgDimention.height}
-    ></svg>
+    <>
+      <svg
+        id="bargraph_svg"
+        width={svgDimention.width}
+        height={svgDimention.height}
+      ></svg>
+      <ProgressBlock color="secondary" hide={hideProgressBlock} />
+    </>
   );
 }
 

@@ -1,6 +1,7 @@
 import { useEffect, useState, useContext } from "react";
 import { ParticipantsContext, DateTimeContext } from "../context";
 import axios from "axios";
+import ProgressBlock from "./progressBlock";
 
 function InteractiveScatter() {
   const activities = [
@@ -10,7 +11,7 @@ function InteractiveScatter() {
     "AtRestaurant",
     "AtWork",
   ];
-  const ANIMATION_STEP = 1800;
+  const ANIMATION_STEP = 2500;
   const RADIUS_CIRCLE = 5;
 
   const [svgDimention, setSvgDimention] = useState({
@@ -18,6 +19,8 @@ function InteractiveScatter() {
     height: null,
   });
   const [myTimer, setMyTimer] = useState(null);
+  const [hideProgressBlock, setHideProgressBlock] = useState(false);
+
   const participantContext = useContext(ParticipantsContext);
   const participants = participantContext.selectedParticipants;
   const dateTimeContext = useContext(DateTimeContext);
@@ -36,6 +39,7 @@ function InteractiveScatter() {
   }, [myTimer]);
 
   useEffect(() => {
+    setHideProgressBlock(false);
     if (
       typeof svgDimention.width !== "number" ||
       typeof svgDimention.height !== "number"
@@ -69,23 +73,24 @@ function InteractiveScatter() {
       .select("#interactive_svg")
       .attr("width", svgDimention.width)
       .attr("height", svgDimention.height);
+    svg.selectAll("*").remove();
     const RADIUS = svgDimention.height / 2.5;
-    const circle = svg
-      .append("circle")
-      .attr("cx", svgDimention.width / 2)
-      .attr("cy", svgDimention.height / 2)
-      .attr("r", RADIUS / 1.05)
-      .style("fill", "none")
-      .style("stroke", "black")
-      .style("stroke-width", "3px")
-      .style("opacity", 0.75);
+    // const circle = svg
+    //   .append("circle")
+    //   .attr("cx", svgDimention.width / 2)
+    //   .attr("cy", svgDimention.height / 2)
+    //   .attr("r", RADIUS / 1.05)
+    //   .style("fill", "none")
+    //   .style("stroke", "black")
+    //   .style("stroke-width", "3px")
+    //   .style("opacity", 0.75);
 
     const theta = d3
       .scaleBand()
       .range([0, 2 * Math.PI])
       .align(0)
-    //   .domain(activities);
-			.domain(activities.slice(1));
+      //   .domain(activities);
+      .domain(activities.slice(1));
 
     const color = d3
       .scaleOrdinal()
@@ -98,46 +103,46 @@ function InteractiveScatter() {
       .join("text")
       .text((d) => d)
       .style("text-anchor", (d) => {
-				if(d == "Transport") {
-					return "start";
-				} else {
-					const angle = (theta(d) * 180) / Math.PI;
-					if (angle > 90 && angle < 270) {
-						return "start";
-					} else {
-						return "end";
-					}
-				}
+        if (d == "Transport") {
+          return "start";
+        } else {
+          const angle = (theta(d) * 180) / Math.PI;
+          if (angle > 90 && angle < 270) {
+            return "start";
+          } else {
+            return "end";
+          }
+        }
       })
-      .attr("transform", (d) => {
-				if(d == "Transport") {
-					return `translate(${
-						svgDimention.width / 2
-					}, ${
-						svgDimention.height / 2
-					})`;
-				} else {
-					const angle = (theta(d) * 180) / Math.PI;
-					if (angle > 90 && angle < 270) {
-						return `translate(${
-							svgDimention.width / 2 +
-							(RADIUS + RADIUS / 5) * Math.cos(theta(d)) * 0.98
-						}, ${
-							svgDimention.height / 2 +
-							(RADIUS + RADIUS / 7) * Math.sin(theta(d)) * 0.98
-						})`;
-					} else {
-						return `translate(${
-							svgDimention.width / 2 +
-							(RADIUS + RADIUS / 5) * Math.cos(theta(d)) * 0.98
-						}, ${
-							svgDimention.height / 2 +
-							(RADIUS + RADIUS / 7) * Math.sin(theta(d)) * 0.98
-						})`;
-					}
-				}
+      .attr("transform", function (d) {
+        if (d == "Transport") {
+          return `translate(${
+            svgDimention.width / 2 - this.getBoundingClientRect().width / 2
+          }, ${svgDimention.height / 2})`;
+        } else {
+          const angle = (theta(d) * 180) / Math.PI;
+          if (angle > 90 && angle < 270) {
+            return `translate(${
+              svgDimention.width / 2 +
+              (RADIUS + RADIUS / 5) * Math.cos(theta(d)) * 0.98 -
+              this.getBoundingClientRect().width / 2
+            }, ${
+              svgDimention.height / 2 +
+              (RADIUS + RADIUS / 7) * Math.sin(theta(d)) * 0.98
+            })`;
+          } else {
+            return `translate(${
+              svgDimention.width / 2 +
+              (RADIUS + RADIUS / 5) * Math.cos(theta(d)) * 0.98 +
+              this.getBoundingClientRect().width / 2
+            }, ${
+              svgDimention.height / 2 +
+              (RADIUS + RADIUS / 7) * Math.sin(theta(d)) * 0.98
+            })`;
+          }
+        }
       })
-      .style("font-size", 14);
+      .style("font-size", 16);
 
     const simulation = d3
       .forceSimulation(data)
@@ -147,32 +152,32 @@ function InteractiveScatter() {
         d3
           .forceX()
           .strength(0.1)
-          .x(
-            (d) => {
-							if(d.currentmode == "Transport") {
-								return svgDimention.width / 2;
-							} else {
-								return svgDimention.width / 2 +
-              	(RADIUS + RADIUS / 5) * Math.cos(theta(d.currentmode)) * 0.75;
-							}
-						}
-          )
+          .x((d) => {
+            if (d.currentmode == "Transport") {
+              return svgDimention.width / 2;
+            } else {
+              return (
+                svgDimention.width / 2 +
+                (RADIUS + RADIUS / 5) * Math.cos(theta(d.currentmode)) * 0.75
+              );
+            }
+          })
       ) // Add x-axis centering force
       .force(
         "y",
         d3
           .forceY()
           .strength(0.1)
-          .y(
-            (d) => {
-							if(d.currentmode == "Transport") {
-								return svgDimention.height / 2;
-							} else {
-								return svgDimention.height / 2 +
-              	(RADIUS + RADIUS / 5) * Math.sin(theta(d.currentmode)) * 0.75;
-							}
-						}
-          )
+          .y((d) => {
+            if (d.currentmode == "Transport") {
+              return svgDimention.height / 2;
+            } else {
+              return (
+                svgDimention.height / 2 +
+                (RADIUS + RADIUS / 5) * Math.sin(theta(d.currentmode)) * 0.75
+              );
+            }
+          })
       ) // Add y-axis centering force
       .force(
         "link",
@@ -185,7 +190,7 @@ function InteractiveScatter() {
 
     playAnimation();
     function playAnimation() {
-      let index = 17;
+      let index = 16;
       clearInterval(myTimer);
       setMyTimer(
         setInterval(function () {
@@ -193,6 +198,8 @@ function InteractiveScatter() {
           const manipulatedData = positionManupilation(data[index]);
           drawInteractivePlotUtil(manipulatedData);
           drawTime((index + 7) % data.length);
+          if (!hideProgressBlock && (index + 7) % data.length == 0)
+            setHideProgressBlock(true);
           index = (index + 1) % data.length;
         }, ANIMATION_STEP)
       );
@@ -206,22 +213,13 @@ function InteractiveScatter() {
             .append("text")
             .attr("class", "time")
             .attr("x", svgDimention.width / 2)
-            .attr("y", svgDimention.height / 2 - 40)
+            .attr("y", svgDimention.height / 4)
             .attr("text-anchor", "middle")
-            .attr("font-size", "20px")
+            .attr("font-size", "24px")
             .attr("font-weight", "bold")
             .attr("fill", "black")
             .text(`Time: ${hour}:00`),
-        (update) =>
-          update
-            .attr("class", "time")
-            .attr("x", svgDimention.width / 2)
-            .attr("y", svgDimention.height / 2 - 40)
-            .attr("text-anchor", "middle")
-            .attr("font-size", "20px")
-            .attr("font-weight", "bold")
-            .attr("fill", "black")
-            .text(`Time: ${hour}:00`),
+        (update) => update.text(`Time: ${hour}:00`),
         (exit) => exit.remove()
       );
     }
@@ -278,27 +276,27 @@ function InteractiveScatter() {
       const activityCounter = categoryCounter(data);
       const circularCoords = [];
       activityCounter.map(function (count, index) {
-				if(index == 0) {
-					circularCoords.push(
-						formCircleAroundCenter(
-							count,
-							svgDimention.width / 2,
-							svgDimention.height / 2,
-							RADIUS_CIRCLE
-						)
-					);
-				} else {
-					circularCoords.push(
-						formCircleAroundCenter(
-							count,
-							svgDimention.width / 2 +
-								(RADIUS - RADIUS / 7) * Math.cos(theta(activities[index])),
-							svgDimention.height / 2 +
-								(RADIUS - RADIUS / 7) * Math.sin(theta(activities[index])),
-							RADIUS_CIRCLE
-						)
-					);
-				}
+        if (index == 0) {
+          circularCoords.push(
+            formCircleAroundCenter(
+              count,
+              svgDimention.width / 2,
+              svgDimention.height / 2,
+              RADIUS_CIRCLE
+            )
+          );
+        } else {
+          circularCoords.push(
+            formCircleAroundCenter(
+              count,
+              svgDimention.width / 2 +
+                (RADIUS - RADIUS / 7) * Math.cos(theta(activities[index])),
+              svgDimention.height / 2 +
+                (RADIUS - RADIUS / 7) * Math.sin(theta(activities[index])),
+              RADIUS_CIRCLE
+            )
+          );
+        }
       });
 
       var pointer = new Array(activities.length).fill(0);
@@ -384,11 +382,15 @@ function InteractiveScatter() {
   }
 
   return (
-    <svg
-      id="interactive_svg"
-      width={svgDimention.width}
-      height={svgDimention.height}
-    ></svg>
+    <>
+      <svg
+        id="interactive_svg"
+        width={svgDimention.width}
+        height={svgDimention.height}
+        className={`${hideProgressBlock ? "opacity-1" : "opacity-0"}`}
+      ></svg>
+      <ProgressBlock hide={hideProgressBlock} color="secondary" />
+    </>
   );
 }
 
