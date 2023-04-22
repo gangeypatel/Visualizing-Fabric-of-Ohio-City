@@ -221,7 +221,7 @@ function Chord() {
             // Highlight selected node and its connections
             const circleSelectionData = svg.selectAll(".chord_nodes");
             const circleSelectionDOM = circleSelectionData.nodes();
-            for (var itr = 0; circleSelectionDOM[itr]; itr++) {
+            for (let itr = 0; circleSelectionDOM[itr]; itr++) {
                 try {
                     const currentNode = circleSelectionData._groups[0][itr];
                     const currentNodeName = currentNode.__data__["name"];
