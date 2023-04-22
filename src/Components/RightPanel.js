@@ -5,7 +5,11 @@ import dayjs from "dayjs";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
-import { DateTimeContext, ParticipantsContext } from "../context";
+import {
+  DateTimeContext,
+  EarningsAndVisitorsContext,
+  ParticipantsContext,
+} from "../context";
 import { useContext } from "react";
 import Container from "@mui/material/Container";
 import Card from "@mui/material/Card";
@@ -14,6 +18,7 @@ import Paper from "@mui/material/Paper";
 import Avatar from "@mui/material/Avatar";
 import { blueGrey } from "@mui/material/colors";
 import Button from "@mui/material/Button";
+import { useEffect } from "react";
 
 export default function RightPanel({
   setPageTo = () => {},
@@ -27,6 +32,14 @@ export default function RightPanel({
 
   const participantsContext = useContext(ParticipantsContext);
   const selectedParticipants = participantsContext.selectedParticipants;
+  const earningsAndVisitorsContext = useContext(EarningsAndVisitorsContext);
+  const visitorsAndEarnings = earningsAndVisitorsContext.visitorsAndEarnings;
+
+  useEffect(() => {
+    if (visitorsAndEarnings.length > 0) {
+      //   setPageTo(3);
+    }
+  }, [visitorsAndEarnings]);
 
   function changeDate(djsObj) {
     const date = djsObj.format("YYYY-MM-DD");

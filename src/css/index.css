@@ -87,7 +87,11 @@ code {
 }
 
 .take-cover:hover {
-  background: rgba(0, 0, 0, 0.05);
+  border: #3399FF 1px solid;
+}
+
+.take-cover:hover::after {
+  background: rgba(0, 0, 0, 0.01);
 }
 
 .take-cover::after {
@@ -97,6 +101,6 @@ code {
   left: 0;
   width: 100%;
   height: 100%;
-  background: transparent;
+  background-color: rgba(0, 0, 0, 0.04);
   z-index: 1;
 }

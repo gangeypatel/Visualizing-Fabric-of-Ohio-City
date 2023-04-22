@@ -12,12 +12,12 @@ function InteractiveScatter() {
   ];
   const ANIMATION_STEP = 1800;
   const RADIUS_CIRCLE = 5;
-  var myTimer;
 
   const [svgDimention, setSvgDimention] = useState({
     width: null,
     height: null,
   });
+  const [myTimer, setMyTimer] = useState(null);
   const participantContext = useContext(ParticipantsContext);
   const participants = participantContext.selectedParticipants;
   const dateTimeContext = useContext(DateTimeContext);
@@ -27,10 +27,13 @@ function InteractiveScatter() {
 
   useEffect(() => {
     calculateSVGDimentions();
+  }, []);
+
+  useEffect(() => {
     return () => {
       clearInterval(myTimer);
     };
-  }, []);
+  }, [myTimer]);
 
   useEffect(() => {
     if (
@@ -161,12 +164,43 @@ function InteractiveScatter() {
     function playAnimation() {
       var index = 0;
       clearInterval(myTimer);
-      myTimer = setInterval(function () {
-        console.log("index: ", data);
-        const manipulatedData = positionManupilation(data[index]);
-        drawInteractivePlotUtil(manipulatedData);
-        index = (index + 1) % data.length;
-      }, ANIMATION_STEP);
+      setMyTimer(
+        setInterval(function () {
+          if (!data[index][0]) index = (index + 1) % data.length;
+          const manipulatedData = positionManupilation(data[index]);
+          drawInteractivePlotUtil(manipulatedData);
+          drawTime((index + 7) % data.length);
+          index = (index + 1) % data.length;
+        }, ANIMATION_STEP)
+      );
+    }
+
+    function drawTime(hour) {
+      const time = svg.selectAll(".time").data([hour]);
+      time.join(
+        (enter) =>
+          enter
+            .append("text")
+            .attr("class", "time")
+            .attr("x", svgDimention.width / 2)
+            .attr("y", svgDimention.height / 2 - 40)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "20px")
+            .attr("font-weight", "bold")
+            .attr("fill", "black")
+            .text(`Time: ${hour}:00`),
+        (update) =>
+          update
+            .attr("class", "time")
+            .attr("x", svgDimention.width / 2)
+            .attr("y", svgDimention.height / 2 - 40)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "20px")
+            .attr("font-weight", "bold")
+            .attr("fill", "black")
+            .text(`Time: ${hour}:00`),
+        (exit) => exit.remove()
+      );
     }
 
     function drawInteractivePlotUtil(data) {

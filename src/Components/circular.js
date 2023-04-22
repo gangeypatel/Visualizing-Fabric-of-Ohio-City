@@ -55,6 +55,20 @@ function Circular() {
   function drawcircularmap() {
     svg.selectAll("*").remove();
 
+    if (data.length === 0) {
+      svg
+        .append("text")
+        .attr("x", svgDimention.width / 2)
+        .attr("y", svgDimention.height / 2)
+        .attr("text-anchor", "middle")
+        .text("No buildings for selected region")
+        .attr("font-size", "1.5em")
+        .attr("font-weight", "bold")
+        .attr("fill", "gray");
+
+      return;
+    }
+
     const node = svg
       .selectAll("circle")
       .data(data)

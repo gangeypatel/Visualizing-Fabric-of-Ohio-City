@@ -71,6 +71,19 @@ function Chord() {
       .attr("width", svgDimention.width)
       .attr("height", svgDimention.height);
     svg.selectAll("*").remove();
+    if (data.nodes.length === 0) {
+      svg
+        .append("text")
+        .attr("x", svgDimention.width / 2)
+        .attr("y", svgDimention.height / 2)
+        .attr("text-anchor", "middle")
+        .text("No data available for selected participants")
+        .attr("font-size", "1.5em")
+        .attr("font-weight", "bold")
+        .attr("fill", "gray");
+
+      return;
+    }
     const RADIUS = svgDimention.height / 2.5;
     const allNodes = data.nodes.map((d) => d.name);
 
@@ -183,87 +196,93 @@ function Chord() {
 
     nodes
       .on("mouseover", function (d, i) {
-        const connections = new Set();
-        connections.add(i.name);
-        // Links
-        links
-          .style("stroke", function (link_d) {
-            // Find connected nodes
-            if (link_d.source === i.name || link_d.target === i.name) {
-              connections.add(link_d.source);
-              connections.add(link_d.target);
-              return "black";
-            }
-            return "grey";
-          })
-          .style("opacity", function (link_d) {
-            return link_d.source === i.name || link_d.target === i.name ? 1 : 0;
-          });
+        try {
+          const connections = new Set();
+          connections.add(i.name);
+          // Links
+          links
+            .style("stroke", function (link_d) {
+              // Find connected nodes
+              if (link_d.source === i.name || link_d.target === i.name) {
+                connections.add(link_d.source);
+                connections.add(link_d.target);
+                return "black";
+              }
+              return "grey";
+            })
+            .style("opacity", function (link_d) {
+              return link_d.source === i.name || link_d.target === i.name
+                ? 1
+                : 0;
+            });
 
-        // Highlight selected node and its connections
-        const circleSelection = svg.node().getElementsByTagName("circle");
-        for (var itr = 0; circleSelection[itr]; itr++) {
-          const currentNode = svg.select(circleSelection[itr]);
-          try {
+          // Highlight selected node and its connections
+          const circleSelection = svg.node().getElementsByTagName("circle");
+          for (var itr = 0; circleSelection[itr]; itr++) {
+            const currentNode = svg.select(circleSelection[itr]);
             const currentNodeName = currentNode._groups[0][0].__data__["name"];
             if (connections.has(currentNodeName)) {
               currentNode.style("opacity", 1);
             } else {
               currentNode.style("opacity", 0.2);
             }
-          } catch (err) {
-            console.log(err);
           }
+          // Labels
+          labels
+            .style("font-size", function (label_d) {
+              return connections.has(label_d.name) ? 15 : 2;
+            })
+            .attr("transform", (d) => {
+              const angle = (theta(d.name) * 180) / Math.PI;
+              if (angle > 90 && angle < 270) {
+                return `translate(${
+                  svgDimention.width / 2 +
+                  (RADIUS + RADIUS / 5) * Math.cos(theta(d.name))
+                }, ${
+                  svgDimention.height / 2 +
+                  (RADIUS + RADIUS / 5) * Math.sin(theta(d.name))
+                }) rotate(${(theta(d.name) * 180) / Math.PI + 180})`;
+              } else {
+                return `translate(${
+                  svgDimention.width / 2 +
+                  (RADIUS + RADIUS / 5) * Math.cos(theta(d.name))
+                }, ${
+                  svgDimention.height / 2 +
+                  (RADIUS + RADIUS / 5) * Math.sin(theta(d.name))
+                }) rotate(${(theta(d.name) * 180) / Math.PI})`;
+              }
+            });
+        } catch (err) {
+          console.log(err);
         }
-        // Labels
-        labels
-          .style("font-size", function (label_d) {
-            return connections.has(label_d.name) ? 15 : 2;
-          })
-          .attr("transform", (d) => {
+      })
+      .on("mouseout", function (d) {
+        try {
+          nodes.style("opacity", 1);
+          links.style("stroke", "grey").style("opacity", 1);
+          labels.style("font-size", 8).attr("transform", (d) => {
             const angle = (theta(d.name) * 180) / Math.PI;
             if (angle > 90 && angle < 270) {
               return `translate(${
                 svgDimention.width / 2 +
-                (RADIUS + RADIUS / 5) * Math.cos(theta(d.name))
+                (RADIUS + RADIUS / 7) * Math.cos(theta(d.name))
               }, ${
                 svgDimention.height / 2 +
-                (RADIUS + RADIUS / 5) * Math.sin(theta(d.name))
+                (RADIUS + RADIUS / 7) * Math.sin(theta(d.name))
               }) rotate(${(theta(d.name) * 180) / Math.PI + 180})`;
             } else {
               return `translate(${
                 svgDimention.width / 2 +
-                (RADIUS + RADIUS / 5) * Math.cos(theta(d.name))
+                (RADIUS + RADIUS / 7) * Math.cos(theta(d.name))
               }, ${
                 svgDimention.height / 2 +
-                (RADIUS + RADIUS / 5) * Math.sin(theta(d.name))
+                (RADIUS + RADIUS / 7) * Math.sin(theta(d.name))
               }) rotate(${(theta(d.name) * 180) / Math.PI})`;
             }
           });
-      })
-      .on("mouseout", function (d) {
-        nodes.style("opacity", 1);
-        links.style("stroke", "grey").style("opacity", 1);
-        labels.style("font-size", 8).attr("transform", (d) => {
-          const angle = (theta(d.name) * 180) / Math.PI;
-          if (angle > 90 && angle < 270) {
-            return `translate(${
-              svgDimention.width / 2 +
-              (RADIUS + RADIUS / 7) * Math.cos(theta(d.name))
-            }, ${
-              svgDimention.height / 2 +
-              (RADIUS + RADIUS / 7) * Math.sin(theta(d.name))
-            }) rotate(${(theta(d.name) * 180) / Math.PI + 180})`;
-          } else {
-            return `translate(${
-              svgDimention.width / 2 +
-              (RADIUS + RADIUS / 7) * Math.cos(theta(d.name))
-            }, ${
-              svgDimention.height / 2 +
-              (RADIUS + RADIUS / 7) * Math.sin(theta(d.name))
-            }) rotate(${(theta(d.name) * 180) / Math.PI})`;
-          }
-        });
+        } catch (err) {
+          console.log(err);
+        }
       });
   }
 

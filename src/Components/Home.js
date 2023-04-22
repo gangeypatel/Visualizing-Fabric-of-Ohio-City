@@ -16,6 +16,7 @@ import { useEffect } from "react";
 import Chord from "./chord";
 import Circular from "./circular";
 import InteractiveScatter from "./interactiveScatter";
+import BarGraph from "./barGraph";
 
 function Home() {
   const [selectedParticipants, setSelectedParticipants] = useState([]);
@@ -80,7 +81,7 @@ function Home() {
         changeFocusedChartComponent(<InteractiveScatter />);
         break;
       case 3:
-        changeFocusedChartComponent(<></>);
+        changeFocusedChartComponent(<BarGraph />);
         break;
       default:
         break;
