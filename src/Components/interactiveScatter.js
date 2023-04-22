@@ -4,8 +4,8 @@ import axios from "axios";
 
 function InteractiveScatter() {
   const activities = [
-    "AtHome",
     "Transport",
+    "AtHome",
     "AtRecreation",
     "AtRestaurant",
     "AtWork",
@@ -84,7 +84,8 @@ function InteractiveScatter() {
       .scaleBand()
       .range([0, 2 * Math.PI])
       .align(0)
-      .domain(activities);
+    //   .domain(activities);
+			.domain(activities.slice(1));
 
     const color = d3
       .scaleOrdinal()
@@ -97,32 +98,44 @@ function InteractiveScatter() {
       .join("text")
       .text((d) => d)
       .style("text-anchor", (d) => {
-        const angle = (theta(d) * 180) / Math.PI;
-        if (angle > 90 && angle < 270) {
-          return "start";
-        } else {
-          return "end";
-        }
+				if(d == "Transport") {
+					return "start";
+				} else {
+					const angle = (theta(d) * 180) / Math.PI;
+					if (angle > 90 && angle < 270) {
+						return "start";
+					} else {
+						return "end";
+					}
+				}
       })
       .attr("transform", (d) => {
-        const angle = (theta(d) * 180) / Math.PI;
-        if (angle > 90 && angle < 270) {
-          return `translate(${
-            svgDimention.width / 2 +
-            (RADIUS + RADIUS / 5) * Math.cos(theta(d)) * 0.98
-          }, ${
-            svgDimention.height / 2 +
-            (RADIUS + RADIUS / 7) * Math.sin(theta(d)) * 0.98
-          })`;
-        } else {
-          return `translate(${
-            svgDimention.width / 2 +
-            (RADIUS + RADIUS / 5) * Math.cos(theta(d)) * 0.98
-          }, ${
-            svgDimention.height / 2 +
-            (RADIUS + RADIUS / 7) * Math.sin(theta(d)) * 0.98
-          })`;
-        }
+				if(d == "Transport") {
+					return `translate(${
+						svgDimention.width / 2
+					}, ${
+						svgDimention.height / 2
+					})`;
+				} else {
+					const angle = (theta(d) * 180) / Math.PI;
+					if (angle > 90 && angle < 270) {
+						return `translate(${
+							svgDimention.width / 2 +
+							(RADIUS + RADIUS / 5) * Math.cos(theta(d)) * 0.98
+						}, ${
+							svgDimention.height / 2 +
+							(RADIUS + RADIUS / 7) * Math.sin(theta(d)) * 0.98
+						})`;
+					} else {
+						return `translate(${
+							svgDimention.width / 2 +
+							(RADIUS + RADIUS / 5) * Math.cos(theta(d)) * 0.98
+						}, ${
+							svgDimention.height / 2 +
+							(RADIUS + RADIUS / 7) * Math.sin(theta(d)) * 0.98
+						})`;
+					}
+				}
       })
       .style("font-size", 14);
 
@@ -135,9 +148,14 @@ function InteractiveScatter() {
           .forceX()
           .strength(0.1)
           .x(
-            (d) =>
-              svgDimention.width / 2 +
-              (RADIUS + RADIUS / 5) * Math.cos(theta(d.currentmode)) * 0.75
+            (d) => {
+							if(d.currentmode == "Transport") {
+								return svgDimention.width / 2;
+							} else {
+								return svgDimention.width / 2 +
+              	(RADIUS + RADIUS / 5) * Math.cos(theta(d.currentmode)) * 0.75;
+							}
+						}
           )
       ) // Add x-axis centering force
       .force(
@@ -146,9 +164,14 @@ function InteractiveScatter() {
           .forceY()
           .strength(0.1)
           .y(
-            (d) =>
-              svgDimention.height / 2 +
-              (RADIUS + RADIUS / 7) * Math.sin(theta(d.currentmode)) * 0.75
+            (d) => {
+							if(d.currentmode == "Transport") {
+								return svgDimention.height / 2;
+							} else {
+								return svgDimention.height / 2 +
+              	(RADIUS + RADIUS / 5) * Math.sin(theta(d.currentmode)) * 0.75;
+							}
+						}
           )
       ) // Add y-axis centering force
       .force(
@@ -255,16 +278,27 @@ function InteractiveScatter() {
       const activityCounter = categoryCounter(data);
       const circularCoords = [];
       activityCounter.map(function (count, index) {
-        circularCoords.push(
-          formCircleAroundCenter(
-            count,
-            svgDimention.width / 2 +
-              (RADIUS - RADIUS / 7) * Math.cos(theta(activities[index])),
-            svgDimention.height / 2 +
-              (RADIUS - RADIUS / 7) * Math.sin(theta(activities[index])),
-            RADIUS_CIRCLE
-          )
-        );
+				if(index == 0) {
+					circularCoords.push(
+						formCircleAroundCenter(
+							count,
+							svgDimention.width / 2,
+							svgDimention.height / 2,
+							RADIUS_CIRCLE
+						)
+					);
+				} else {
+					circularCoords.push(
+						formCircleAroundCenter(
+							count,
+							svgDimention.width / 2 +
+								(RADIUS - RADIUS / 7) * Math.cos(theta(activities[index])),
+							svgDimention.height / 2 +
+								(RADIUS - RADIUS / 7) * Math.sin(theta(activities[index])),
+							RADIUS_CIRCLE
+						)
+					);
+				}
       });
 
       var pointer = new Array(activities.length).fill(0);
