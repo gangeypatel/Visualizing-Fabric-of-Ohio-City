@@ -154,7 +154,8 @@ function Chord() {
       .attr("r", "5")
       .style("fill", "green")
       .attr("stroke", "white")
-      .attr("class", "chord_nodes");
+      .attr("class", "chord_nodes")
+      .attr("id", (d) => "chord_node_" + d.name);
 
     const labels = svg
       .selectAll("mylabels")
@@ -218,45 +219,45 @@ function Chord() {
             });
 
             // Highlight selected node and its connections
-            const circleSelection = svg.select(".chord_nodes").node();
-            console.log(circleSelection);
-            for (var itr = 0; circleSelection[itr]; itr++) {
-            const currentNode = svg.select(circleSelection[itr]);
-            try {
-                const currentNodeName = currentNode._groups[0][0].__data__["name"];
-                if (connections.has(currentNodeName)) {
-                currentNode.style("opacity", 1);
-                } else {
-                currentNode.style("opacity", 0.2);
-                }
-                // Labels
-                labels
-                    .style("font-size", function (label_d) {
-                    return connections.has(label_d.name) ? 15 : 2;
-                    })
-                    .attr("transform", (d) => {
-                    const angle = (theta(d.name) * 180) / Math.PI;
-                    if (angle > 90 && angle < 270) {
-                        return `translate(${
-                        svgDimention.width / 2 +
-                        (RADIUS + RADIUS / 5) * Math.cos(theta(d.name))
-                        }, ${
-                        svgDimention.height / 2 +
-                        (RADIUS + RADIUS / 5) * Math.sin(theta(d.name))
-                        }) rotate(${(theta(d.name) * 180) / Math.PI + 180})`;
+            const circleSelectionData = svg.selectAll(".chord_nodes");
+            const circleSelectionDOM = circleSelectionData.nodes();
+            for (let itr = 0; circleSelectionDOM[itr]; itr++) {
+                try {
+                    const currentNode = circleSelectionData._groups[0][itr];
+                    const currentNodeName = currentNode.__data__["name"];
+                    if (connections.has(currentNodeName)) {
+                    svg.select("#chord_node_" + currentNodeName).style("opacity", 1);
                     } else {
-                        return `translate(${
-                        svgDimention.width / 2 +
-                        (RADIUS + RADIUS / 5) * Math.cos(theta(d.name))
-                        }, ${
-                        svgDimention.height / 2 +
-                        (RADIUS + RADIUS / 5) * Math.sin(theta(d.name))
-                        }) rotate(${(theta(d.name) * 180) / Math.PI})`;
+                    svg.select("#chord_node_" + currentNodeName).style("opacity", 0.2);
                     }
-                });
-            } catch (err) {
-            console.log(err);
-            }
+                    // Labels
+                    labels
+                        .style("font-size", function (label_d) {
+                        return connections.has(label_d.name) ? 15 : 2;
+                        })
+                        .attr("transform", (d) => {
+                        const angle = (theta(d.name) * 180) / Math.PI;
+                        if (angle > 90 && angle < 270) {
+                            return `translate(${
+                            svgDimention.width / 2 +
+                            (RADIUS + RADIUS / 5) * Math.cos(theta(d.name))
+                            }, ${
+                            svgDimention.height / 2 +
+                            (RADIUS + RADIUS / 5) * Math.sin(theta(d.name))
+                            }) rotate(${(theta(d.name) * 180) / Math.PI + 180})`;
+                        } else {
+                            return `translate(${
+                            svgDimention.width / 2 +
+                            (RADIUS + RADIUS / 5) * Math.cos(theta(d.name))
+                            }, ${
+                            svgDimention.height / 2 +
+                            (RADIUS + RADIUS / 5) * Math.sin(theta(d.name))
+                            }) rotate(${(theta(d.name) * 180) / Math.PI})`;
+                        }
+                    });
+                } catch (err) {
+                console.log(err);
+                }
         } 
         } catch (err) {
             console.log(err);
