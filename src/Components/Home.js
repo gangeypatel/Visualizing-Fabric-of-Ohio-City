@@ -13,12 +13,18 @@ import Stack from "@mui/material/Stack";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import Typography from "@mui/material/Typography";
 import { useEffect } from "react";
+import Chord from "./chord";
+import Circular from "./circular";
+import InteractiveScatter from "./interactiveScatter";
 
 function Home() {
   const [selectedParticipants, setSelectedParticipants] = useState([]);
   const [selectedBuildings, setSelectedBuildings] = useState([]);
   const [dateTime, setDateTime] = useState("2022-03-01 17");
   const [visitorsAndEarnings, setVisitorsAndEarnings] = useState([]);
+  const [rightPanelComponents, setRightPanelComponents] = useState([]);
+
+  const allPageComponents = [<DensityMap />, <Chord />, <Circular />];
 
   const [chartTitle, setChartTitle] = useState(
     "Density Map of Participants at parts of Ohio"
@@ -56,16 +62,25 @@ function Home() {
     }
   }
 
+  function changeFocusedChartComponent(component) {
+    // if (component.type.name !== "DensityMap")
+    setRightPanelComponents(
+      allPageComponents.filter((c) => c.type.name !== component.type.name)
+    );
+
+    setFocusedChartComponent(component);
+  }
+
   useEffect(() => {
     switch (currentPage) {
       case 1:
-        setFocusedChartComponent(<DensityMap />);
+        changeFocusedChartComponent(<DensityMap />);
         break;
       case 2:
-        setFocusedChartComponent(<></>);
+        changeFocusedChartComponent(<DensityMap />);
         break;
       case 3:
-        setFocusedChartComponent(<></>);
+        changeFocusedChartComponent(<></>);
         break;
       default:
         break;
@@ -127,6 +142,8 @@ function Home() {
                 <RightPanel
                   setPageTo={changePageTo}
                   currentPage={currentPage}
+                  rightPanelComponents={rightPanelComponents}
+                  changeFocusedChartComponent={changeFocusedChartComponent}
                 />
               </div>
             </div>

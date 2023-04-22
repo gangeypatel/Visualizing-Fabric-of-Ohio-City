@@ -15,7 +15,12 @@ import Avatar from "@mui/material/Avatar";
 import { blueGrey } from "@mui/material/colors";
 import Button from "@mui/material/Button";
 
-export default function RightPanel({ setPageTo, currentPage }) {
+export default function RightPanel({
+  setPageTo = () => {},
+  currentPage = 1,
+  rightPanelComponents = [],
+  changeFocusedChartComponent = () => {},
+}) {
   const dateTimeContext = useContext(DateTimeContext);
   const dateTime = dateTimeContext.dateTime;
   const setDateTime = dateTimeContext.setDateTime;
@@ -41,111 +46,149 @@ export default function RightPanel({ setPageTo, currentPage }) {
     );
   }
 
+  const firstPageComponent = (
+    <>
+      <div className="">
+        <Card className="">
+          <CardContent>
+            <div className="font-bold text-xl">Filters</div>
+            <div className="flex items-center mt-2 w-full">
+              <div className="flex-1">
+                <InputLabel id="date-label">Date</InputLabel>
+                <DatePicker
+                  className="w-full"
+                  labelId="date-label"
+                  id="date-select"
+                  value={dayjs(dateTime.split(" ")[0])}
+                  onChange={changeDate}
+                  shouldDisableDate={shouldDisableDate}
+                />
+              </div>
+              <div className="ml-4">
+                <InputLabel id="time-label">Time</InputLabel>
+                <Select
+                  labelId="time-label"
+                  id="time-select"
+                  value={dateTime.split(" ")[1]}
+                  label="Time"
+                  className="w-36"
+                  onChange={changeTime}
+                >
+                  {[...Array(24).keys()].map((hour, i) => {
+                    return (
+                      <MenuItem key={i} value={hour}>{`${hour}:00`}</MenuItem>
+                    );
+                  })}
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className=" mt-4">
+          <CardContent>
+            <div className="font-bold text-xl">
+              Selected Participants ({selectedParticipants.length})
+            </div>
+            <div className="flex flex-col mt-2 w-full h-96 overflow-y-auto">
+              {selectedParticipants.length === 0 ? (
+                <div className="text-center text-gray-500 h-full flex flex-col items-center justify-center">
+                  <span>No one selected</span>
+                  <span className="text-gray-400 text-sm">
+                    (Select participants by clicking and then dragging on the
+                    map)
+                  </span>
+                </div>
+              ) : (
+                selectedParticipants.map((participant, i) => {
+                  return (
+                    <Paper
+                      variant="outlined"
+                      className="p-2 rounded flex items-center my-2"
+                      key={i}
+                    >
+                      <Avatar
+                        sx={{
+                          width: 28,
+                          height: 28,
+                          bgcolor: blueGrey[500],
+                        }}
+                        src="/broken-image.jpg"
+                      />
+                      <div className="ml-2 flex flex-col justify-center">
+                        <div className=" text-gray-500">
+                          <span className="font-bold text-gray-700">
+                            Location:{" "}
+                          </span>
+                          {participant.currentmode}
+                        </div>
+                        <div className=" text-gray-500">
+                          <span className="font-bold text-gray-700">
+                            Balance:{" "}
+                          </span>
+                          {`$${participant.availablebalance.toFixed(2)}`}
+                        </div>
+                      </div>
+                    </Paper>
+                  );
+                })
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="w-full mt-4">
+        <Button
+          disabled={selectedParticipants.length === 0}
+          variant="contained"
+          className="w-full h-12"
+          onClick={() => setPageTo(2)}
+        >
+          Detailed Charts
+        </Button>
+      </div>
+    </>
+  );
+
+  const secondPageComponent = (
+    <div className="flex flex-col justify-evenly h-full">
+      {rightPanelComponents.map((component, i) => {
+        return (
+          <Card
+            key={i}
+            style={{ height: "450px" }}
+            className="w-full overflow-hidden take-cover cursor-pointer flex items-center justify-center"
+            onClick={() => {
+              changeFocusedChartComponent(component);
+            }}
+          >
+            {component}
+          </Card>
+        );
+      })}
+    </div>
+  );
+
+  const getComponentByPage = () => {
+    switch (currentPage) {
+      case 1:
+        return firstPageComponent;
+      case 2:
+        return secondPageComponent;
+      case 3:
+        return <></>;
+      default:
+        return firstPageComponent;
+    }
+  };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Container
         maxWidth="sm"
         className="px-2 rounded-lg h-full flex flex-col justify-between"
       >
-        <div className="">
-          <Card className="">
-            <CardContent>
-              <div className="font-bold text-xl">Filters</div>
-              <div className="flex items-center mt-2 w-full">
-                <div className="flex-1">
-                  <InputLabel id="date-label">Date</InputLabel>
-                  <DatePicker
-                    className="w-full"
-                    labelId="date-label"
-                    id="date-select"
-                    value={dayjs(dateTime.split(" ")[0])}
-                    onChange={changeDate}
-                    shouldDisableDate={shouldDisableDate}
-                  />
-                </div>
-                <div className="ml-4">
-                  <InputLabel id="time-label">Time</InputLabel>
-                  <Select
-                    labelId="time-label"
-                    id="time-select"
-                    value={dateTime.split(" ")[1]}
-                    label="Time"
-                    className="w-36"
-                    onChange={changeTime}
-                  >
-                    {[...Array(24).keys()].map((hour, i) => {
-                      return (
-                        <MenuItem key={i} value={hour}>{`${hour}:00`}</MenuItem>
-                      );
-                    })}
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className=" mt-4">
-            <CardContent>
-              <div className="font-bold text-xl">
-                Selected Participants ({selectedParticipants.length})
-              </div>
-              <div className="flex flex-col mt-2 w-full h-96 overflow-y-auto">
-                {selectedParticipants.length === 0 ? (
-                  <div className="text-center text-gray-500 h-full flex flex-col items-center justify-center">
-                    <span>No one selected</span>
-                    <span className="text-gray-400 text-sm">
-                      (Select participants by clicking and then dragging on the
-                      map)
-                    </span>
-                  </div>
-                ) : (
-                  selectedParticipants.map((participant, i) => {
-                    return (
-                      <Paper
-                        variant="outlined"
-                        className="p-2 rounded flex items-center my-2"
-                        key={i}
-                      >
-                        <Avatar
-                          sx={{
-                            width: 28,
-                            height: 28,
-                            bgcolor: blueGrey[500],
-                          }}
-                          src="/broken-image.jpg"
-                        />
-                        <div className="ml-2 flex flex-col justify-center">
-                          <div className=" text-gray-500">
-                            <span className="font-bold text-gray-700">
-                              Location:{" "}
-                            </span>
-                            {participant.currentmode}
-                          </div>
-                          <div className=" text-gray-500">
-                            <span className="font-bold text-gray-700">
-                              Balance:{" "}
-                            </span>
-                            {`$${participant.availablebalance.toFixed(2)}`}
-                          </div>
-                        </div>
-                      </Paper>
-                    );
-                  })
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="w-full mt-4">
-          <Button
-            disabled={selectedParticipants.length === 0}
-            variant="contained"
-            className="w-full h-12"
-            onClick={() => setPageTo(2)}
-          >
-            Detailed Charts
-          </Button>
-        </div>
+        {getComponentByPage()}
       </Container>
     </LocalizationProvider>
   );

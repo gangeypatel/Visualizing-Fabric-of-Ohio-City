@@ -269,7 +269,7 @@ function DensityMap() {
   }
 
   function calculateSVGDimentions() {
-    if (svg.node() === null) svg = d3.select("#densitymap_svg");
+    if (!svg || svg.node() === null) svg = d3.select("#densitymap_svg");
     const margin = 50;
     const parentHeight =
       svg.node().parentNode.getBoundingClientRect().height - margin;
