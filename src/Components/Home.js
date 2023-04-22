@@ -24,7 +24,7 @@ function Home() {
   const [visitorsAndEarnings, setVisitorsAndEarnings] = useState([]);
   const [rightPanelComponents, setRightPanelComponents] = useState([]);
 
-  const allPageComponents = [<DensityMap />, <Chord />, <Circular />];
+  const allPageComponents = [<InteractiveScatter />, <Chord />, <Circular />];
 
   const [chartTitle, setChartTitle] = useState(
     "Density Map of Participants at parts of Ohio"
@@ -77,7 +77,7 @@ function Home() {
         changeFocusedChartComponent(<DensityMap />);
         break;
       case 2:
-        changeFocusedChartComponent(<DensityMap />);
+        changeFocusedChartComponent(<InteractiveScatter />);
         break;
       case 3:
         changeFocusedChartComponent(<></>);

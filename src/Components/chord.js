@@ -201,14 +201,18 @@ function Chord() {
           });
 
         // Highlight selected node and its connections
-        const circleSelection = document.getElementsByTagName("circle");
+        const circleSelection = svg.node().getElementsByTagName("circle");
         for (var itr = 0; circleSelection[itr]; itr++) {
-          const currentNode = d3.select(circleSelection[itr]);
-          const currentNodeName = currentNode._groups[0][0].__data__["name"];
-          if (connections.has(currentNodeName)) {
-            currentNode.style("opacity", 1);
-          } else {
-            currentNode.style("opacity", 0.2);
+          const currentNode = svg.select(circleSelection[itr]);
+          try {
+            const currentNodeName = currentNode._groups[0][0].__data__["name"];
+            if (connections.has(currentNodeName)) {
+              currentNode.style("opacity", 1);
+            } else {
+              currentNode.style("opacity", 0.2);
+            }
+          } catch (err) {
+            console.log(err);
           }
         }
         // Labels

@@ -1,37 +1,43 @@
 import { useEffect, useState, useContext } from "react";
 import { ParticipantsContext, DateTimeContext } from "../context";
 import axios from "axios";
-// import rawJsonData from '../data/interActiveScatterPlot.json'
-const activities = [
-  "AtHome",
-  "Transport",
-  "AtRecreation",
-  "AtRestaurant",
-  "AtWork",
-];
-const ANIMATION_STEP = 1800;
-const RADIUS_CIRCLE = 5;
-var myTimer;
 
 function InteractiveScatter() {
-  const [svgDimention, setSvgDimention] = useState({
-    width: 800,
-    height: 650,
-  });
+  const activities = [
+    "AtHome",
+    "Transport",
+    "AtRecreation",
+    "AtRestaurant",
+    "AtWork",
+  ];
+  const ANIMATION_STEP = 1800;
+  const RADIUS_CIRCLE = 5;
+  var myTimer;
 
+  const [svgDimention, setSvgDimention] = useState({
+    width: null,
+    height: null,
+  });
   const participantContext = useContext(ParticipantsContext);
   const participants = participantContext.selectedParticipants;
   const dateTimeContext = useContext(DateTimeContext);
-  const dateTime = dateTimeContext.dateTime;
-  const date = dateTime.split(" ")[0];
+  const date = dateTimeContext.dateTime.split(" ")[0];
 
   const d3 = window.d3;
 
   useEffect(() => {
     calculateSVGDimentions();
+    return () => {
+      clearInterval(myTimer);
+    };
   }, []);
 
   useEffect(() => {
+    if (
+      typeof svgDimention.width !== "number" ||
+      typeof svgDimention.height !== "number"
+    )
+      return;
     (async () => {
       const rawJsonData = await fetchParticipantConnections(
         makeQuery(date, participants)
@@ -39,16 +45,19 @@ function InteractiveScatter() {
       const data = restructureData(rawJsonData);
       drawInteractivePlot(data);
     })();
-  }, [participants]);
-  // }, []);
+  }, [participants, svgDimention]);
 
   function calculateSVGDimentions() {
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
+    const svg = d3.select("#interactive_svg");
+    if (svg.node() === null) return;
+    const margin = 24;
+    const dimentions = svg.node().parentNode.getBoundingClientRect();
+    const parentHeight = dimentions.height - margin;
+    const parentWidth = dimentions.width - margin;
 
     setSvgDimention({
-      width: windowWidth - 100,
-      height: windowHeight - 100,
+      width: parentWidth,
+      height: parentHeight,
     });
   }
 
@@ -153,6 +162,7 @@ function InteractiveScatter() {
       var index = 0;
       clearInterval(myTimer);
       myTimer = setInterval(function () {
+        console.log("index: ", data);
         const manipulatedData = positionManupilation(data[index]);
         drawInteractivePlotUtil(manipulatedData);
         index = (index + 1) % data.length;
@@ -161,38 +171,50 @@ function InteractiveScatter() {
 
     function drawInteractivePlotUtil(data) {
       const nodes = svg.selectAll(".nodes").data(data);
+
       nodes.join(
         (enter) =>
           enter
             .append("circle")
+            .attr("class", "nodes")
+            .attr("r", "5")
             .attr("cx", (d) => {
               return d.x;
             })
             .attr("cy", (d) => {
               return d.y;
             })
-            .attr("r", "5")
             .style("fill", (d) => color(d.currentmode))
             .attr("stroke", "white")
-            .attr("class", "nodes"),
-
+            .attr("stroke-width", 1),
         (update) =>
           update
-            .transition()
-            .duration(750)
+            .attr("class", "nodes")
+            .attr("r", "5")
             .attr("cx", (d) => {
               return d.x;
             })
             .attr("cy", (d) => {
               return d.y;
             })
-            .attr("r", "5")
-            .style("fill", (d) => color(d.currentmode))
-            .attr("stroke", "white")
-            .attr("class", "nodes"),
-
+            .style("fill", (d) => color(d.currentmode)),
         (exit) => exit.remove()
       );
+      simulation.nodes(data).on("tick", ticked);
+      simulation.alpha(0.9).restart();
+
+      function ticked() {
+        nodes
+          .transition()
+          .duration(750)
+          .ease(d3.easeLinear)
+          .attr("cx", (d) => {
+            return d.x;
+          })
+          .attr("cy", (d) => {
+            return d.y;
+          });
+      }
     }
 
     function positionManupilation(data) {
@@ -294,13 +316,11 @@ function InteractiveScatter() {
   }
 
   return (
-    <div className="flex items-center justify-center overflow-hidden">
-      <svg
-        id="interactive_svg"
-        width={svgDimention.width}
-        height={svgDimention.height}
-      ></svg>
-    </div>
+    <svg
+      id="interactive_svg"
+      width={svgDimention.width}
+      height={svgDimention.height}
+    ></svg>
   );
 }
 
