@@ -37,7 +37,7 @@ export default function RightPanel({
 
   useEffect(() => {
     if (visitorsAndEarnings.length > 0) {
-      //   setPageTo(3);
+      setPageTo(3);
     }
   }, [visitorsAndEarnings]);
 

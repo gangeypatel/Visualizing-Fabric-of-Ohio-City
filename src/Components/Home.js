@@ -137,7 +137,7 @@ function Home() {
                 </Stack>
               </div>
               <div className="flex-1 flex items-center justify-evenly">
-                <div className="h-full flex-1 flex items-center justify-center bg-white border border-black-50 rounded-lg mr-10">
+                <div className="relative h-full flex-1 flex items-center justify-center bg-white border border-black-50 rounded-lg mr-10">
                   {focusedChartComponent}
                 </div>
                 <RightPanel

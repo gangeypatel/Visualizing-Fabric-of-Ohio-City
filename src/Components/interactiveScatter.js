@@ -162,7 +162,7 @@ function InteractiveScatter() {
 
     playAnimation();
     function playAnimation() {
-      var index = 0;
+      let index = 17;
       clearInterval(myTimer);
       setMyTimer(
         setInterval(function () {
