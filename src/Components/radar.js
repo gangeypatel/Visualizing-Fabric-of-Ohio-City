@@ -160,7 +160,7 @@ function Radar() {
       // .attr("x", (d, i) => radius * 1.105 * Math.cos(angleSlice * i - Math.PI / 2))
       // .attr("y", (d, i) => radius * 1.105 * Math.sin(angleSlice * i - Math.PI / 2))
       .text((d, i) => {
-        const hour = i + 1;
+        const hour = (i + 8 + 12) % 24;
         if (hour === 12) {
           return `12:00 PM`;
         } else if (hour === 24) {
