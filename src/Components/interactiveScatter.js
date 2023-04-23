@@ -95,7 +95,7 @@ function InteractiveScatter({ showHelpModal = false }) {
 
     const color = d3
       .scaleOrdinal()
-      .range(["violet", "blue", "green", "yellow", "red"])
+      .range(["violet", "blue", "green", "orange", "red"])
       .domain(activities);
 
     const labels = svg
