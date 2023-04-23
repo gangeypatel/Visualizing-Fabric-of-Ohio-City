@@ -84,10 +84,11 @@ code {
 
 .take-cover {
   position: relative;
+  border: rgba(0, 0, 0, 0.01) 1px solid;
 }
 
 .take-cover:hover {
-  border: #3399FF 1px solid;
+  border-color: #3399FF;
 }
 
 .take-cover:hover::after {

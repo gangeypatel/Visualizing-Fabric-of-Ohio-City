@@ -1,8 +1,9 @@
 import { useEffect, useState, useContext } from "react";
 import { EarningsAndVisitorsContext } from "../context";
+import HelpModal from "./helpModal";
 import ProgressBlock from "./progressBlock";
 
-function BarGraph() {
+function BarGraph({ showHelpModal = false }) {
   var margin = { top: 20, right: 30, bottom: 80, left: 30 };
   const d3 = window.d3;
   let x, y, svg, g;
@@ -143,6 +144,7 @@ function BarGraph() {
       })
       .on("mouseleave", function (e, d) {
         tooltip.style("position", "absolute");
+        tooltip.style("left", "-1000px").style("top", "-1000px");
         tooltip.style("opacity", 0);
       });
 
@@ -234,6 +236,12 @@ function BarGraph() {
     });
   }
 
+  const helpModalDescription = [
+    "This graph shows the total number of customers who visited the store in a particular hour.",
+    "The X-axis shows the time in hours and the Y-axis shows the total number of customers.",
+    "Hover over the bars to see the exact number of customers.",
+  ];
+
   return (
     <>
       <svg
@@ -241,6 +249,12 @@ function BarGraph() {
         width={svgDimention.width}
         height={svgDimention.height}
       ></svg>
+      {showHelpModal === true && (
+        <HelpModal
+          title="About Bar Graph"
+          descriptions={helpModalDescription}
+        />
+      )}
       <ProgressBlock color="secondary" hide={hideProgressBlock} />
     </>
   );

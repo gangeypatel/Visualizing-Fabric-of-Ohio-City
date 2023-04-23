@@ -5,9 +5,10 @@ import {
   DateTimeContext,
   EarningsAndVisitorsContext,
 } from "../context";
+import HelpModal from "./helpModal";
 import ProgressBlock from "./progressBlock";
 
-function Circular({ setPageTo = () => {} }) {
+function Circular({ setPageTo = () => {}, showHelpModal = false }) {
   const d3 = window.d3;
 
   const [svgDimention, setSvgDimention] = useState({
@@ -30,9 +31,9 @@ function Circular({ setPageTo = () => {} }) {
   const color = d3
     .scaleOrdinal()
     .domain([1, 2, 3])
-    .range(["#bee9e8", "#cae9ff", "#5fa8d3"]);
+    .range(["#3f50b5", "#ba000d", "#4caf50"]);
 
-  const size = d3.scaleLinear().domain([0, 200]).range([15, 40]);
+  const size = d3.scaleLinear().domain([0, 200]).range([30, 60]);
 
   const x = d3.scaleOrdinal().domain([1, 2, 3]).range([50, 200, 340]);
 
@@ -58,6 +59,9 @@ function Circular({ setPageTo = () => {} }) {
 
   function drawcircularmap() {
     svg.selectAll("*").remove();
+    let tooltip = d3.select("#tooltip");
+    if (tooltip.empty())
+      tooltip = d3.select("body").append("div").attr("id", "tooltip");
 
     if (data.length === 0) {
       svg
@@ -79,6 +83,7 @@ function Circular({ setPageTo = () => {} }) {
       .enter()
       .append("circle")
       .attr("id", "circles")
+      .attr("class", "cursor-pointer")
       .attr("r", function (d) {
         return size(parseInt(d.maxOccupancy));
       })
@@ -87,7 +92,7 @@ function Circular({ setPageTo = () => {} }) {
       .style("fill", function (d) {
         return color(d.businessType);
       })
-      .style("fill-opacity", 0.8)
+      .style("fill-opacity", 0.6)
       .attr("stroke", "black")
       .style("stroke-width", 4)
       .call(
@@ -97,8 +102,39 @@ function Circular({ setPageTo = () => {} }) {
           .on("drag", dragged)
           .on("end", dragended)
       )
-      .on("click", function (d, i) {
-        fetchBusinessData(i.businessId);
+      .on("mouseover", function (e, d) {
+        d3.select(this).style("fill-opacity", 1);
+        d3.select(this).style("stroke-width", 6);
+        d3.select(this).style("stroke", "#9c27b0");
+      })
+      .on("mousemove", function (e, d) {
+        tooltip
+          .html(
+            `Building ID: <I><B> ${d.buildingId}</B></I><br> Business Type: <I><B> ${d.businessType}</B></I><br>Max. Occupancy: <I><B> ${d.maxOccupancy}</B></I>`
+          )
+          .style("opacity", 1)
+          .style("background-color", "white")
+          .style("border", "solid")
+          .style("border-color", "#00b0ff")
+          .style("border-width", "1px")
+          .style("border-radius", "5px")
+          .style("font-size", "14px")
+          .style("padding", "8px")
+          .style("position", "absolute")
+          .style("left", `${e.clientX + 20}px`)
+          .style("top", `${e.clientY + 20}px`);
+      })
+      .on("mouseout", function (e, d) {
+        tooltip.style("left", "-1000px").style("top", "-1000px");
+        tooltip.style("opacity", 0);
+        d3.select(this).style("fill-opacity", 0.6);
+        d3.select(this).style("stroke-width", 4);
+        d3.select(this).style("stroke", "black");
+      })
+      .on("click", function (e, d) {
+        tooltip.style("left", "-1000px").style("top", "-1000px");
+        tooltip.style("opacity", 0);
+        fetchBusinessData(d.businessId);
       });
 
     async function fetchBusinessData(businessId) {
@@ -188,6 +224,14 @@ function Circular({ setPageTo = () => {} }) {
     });
   }
 
+  const helpModalDescription = [
+    "This chart shows the buildings information in the selected region.",
+    "The size of the circle represents the maximum occupancy of the building.",
+    "The color of the circle represents the business type of the building.",
+    "You can drag the circles to rearrange them.",
+    "Click on a circle to see the visitors and earnings of the building.",
+  ];
+
   return (
     <>
       <svg
@@ -195,6 +239,12 @@ function Circular({ setPageTo = () => {} }) {
         width={svgDimention.width}
         height={svgDimention.height}
       ></svg>
+      {showHelpModal === true && (
+        <HelpModal
+          title="About Circular Packing Chart"
+          descriptions={helpModalDescription}
+        />
+      )}
       <ProgressBlock color="primary" hide={hideProgressBlock} />
     </>
   );

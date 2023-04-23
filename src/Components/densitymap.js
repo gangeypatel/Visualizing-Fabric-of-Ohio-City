@@ -12,8 +12,9 @@ import {
 } from "../context";
 import Lasso from "../helpers/lasso";
 import ProgressBlock from "./progressBlock";
+import HelpModal from "./helpModal";
 
-function DensityMap() {
+function DensityMap({ showHelpModal = false }) {
   const geoJSONdata = rawBaseMapVectorPoints;
 
   const [participantsLocation, setParticipantsLocation] = useState([]);
@@ -345,6 +346,12 @@ function DensityMap() {
     d3Lasso.on("end", onLassoEnd);
   }
 
+  const helpModalDescription = [
+    "This chart shows the density of participants in the area. The size and color of the circle represents the amount of money the participant has in their account. The darker the circle, the more money they have.",
+    "You can select multiple participants by clicking and dragging a lasso around them. You can also select multiple buildings by clicking and dragging a lasso around them.",
+    "Buildings are plotted but not visible. You can see the selected buildings by lasso by clicking on the 'Detailed Charts' button.",
+  ];
+
   return (
     <>
       <svg
@@ -352,6 +359,12 @@ function DensityMap() {
         width={svgDimention.width}
         height={svgDimention.height}
       ></svg>
+      {showHelpModal === true && (
+        <HelpModal
+          title="About Density Chart"
+          descriptions={helpModalDescription}
+        />
+      )}
       <ProgressBlock color="secondary" hide={hideProgressBlock} />
     </>
   );

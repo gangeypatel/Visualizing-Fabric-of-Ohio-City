@@ -20,6 +20,8 @@ import { blueGrey } from "@mui/material/colors";
 import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import Radar from "./radar";
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
 
 export default function RightPanel({
   setPageTo = () => {},
@@ -95,7 +97,7 @@ export default function RightPanel({
             <div className="font-bold text-xl">
               Selected Participants ({selectedParticipants.length})
             </div>
-            <div className="flex flex-col mt-2 w-full h-96 overflow-y-auto">
+            <div className="flex flex-col mt-2 w-full h-72 xl:h-80 2xl:h-96 overflow-y-auto">
               {selectedParticipants.length === 0 ? (
                 <div className="text-center text-gray-500 h-full flex flex-col items-center justify-center">
                   <span>No one selected</span>
@@ -121,11 +123,19 @@ export default function RightPanel({
                         src="/broken-image.jpg"
                       />
                       <div className="ml-2 flex flex-col justify-center">
-                        <div className=" text-gray-500">
-                          <span className="font-bold text-gray-700">
-                            Location:{" "}
-                          </span>
-                          {participant.currentmode}
+                        <div className=" text-gray-500 flex items-center">
+                          <div>
+                            <span className="font-bold text-gray-700">
+                              ID:{" "}
+                            </span>
+                            {participant.participantid}
+                          </div>
+                          <div className="ml-4">
+                            <span className="font-bold text-gray-700">
+                              Location:{" "}
+                            </span>
+                            {participant.currentmode}
+                          </div>
                         </div>
                         <div className=" text-gray-500">
                           <span className="font-bold text-gray-700">
@@ -156,6 +166,11 @@ export default function RightPanel({
     </>
   );
 
+  const getComputedCardHeight = () => {
+    const cardHeight = (window.innerHeight - 160) / 2;
+    return { height: `${parseInt(cardHeight)}px` };
+  };
+
   const secondPageComponent = (
     <div className="flex flex-col justify-evenly h-full">
       {rightPanelComponents.map((component, i) => {
@@ -163,7 +178,7 @@ export default function RightPanel({
           <Tooltip title={"Click to enlarge"} key={i} arrow placement="top">
             <Card
               key={i}
-              style={{ height: "450px" }}
+              style={getComputedCardHeight()}
               className="relative w-full overflow-hidden take-cover cursor-pointer flex items-center justify-center"
               onClick={() => {
                 changeFocusedChartComponent(component);
@@ -179,7 +194,7 @@ export default function RightPanel({
 
   const thirdPageComponent = (
     <div className="flex-1 relative bg-white flex items-center justify-center h-full border border-black-50 rounded-lg">
-      <Radar />
+      <Radar showHelpModal={true} />
     </div>
   );
 

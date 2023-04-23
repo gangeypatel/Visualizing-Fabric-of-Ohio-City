@@ -1,8 +1,9 @@
 import { useEffect, useState, useContext } from "react";
 import { EarningsAndVisitorsContext } from "../context";
+import HelpModal from "./helpModal";
 import ProgressBlock from "./progressBlock";
 
-function Radar() {
+function Radar({ showHelpModal = false }) {
   const [svgDimention, setSvgDimention] = useState({
     width: null,
     height: null,
@@ -66,7 +67,7 @@ function Radar() {
     const numAxis = data.length;
     const angleSlice = (Math.PI * 2) / numAxis;
     const radius =
-      (d3.min([svgDimention.width, svgDimention.height]) / 2) * 0.85;
+      (d3.min([svgDimention.width, svgDimention.height]) / 2) * 0.75;
 
     const svg = d3
       .select("#radar_svg")
@@ -138,6 +139,7 @@ function Radar() {
           .style("stroke", "darkblue")
           .style("stroke-width", "1px")
           .style("opacity", 0.3);
+        tooltip.style("left", "-1000px").style("top", "-1000px");
         tooltip.style("opacity", 0);
       })
       .transition()
@@ -262,6 +264,13 @@ function Radar() {
     // });
   }
 
+  const helpModalDescription = [
+    "Radar graph is a graphical method of displaying multivariate data in the form of a two-dimensional chart of three or more quantitative variables represented on axes starting from the same point.",
+    "Here, the data is represented in the form of a polygon with vertices corresponding to the variables.",
+    "Each variable (Hour) is plotted on a separate axis that starts from the center of the graph.",
+    "The ploygon colored in pink represents the <span class='font-bold'>Spending</span> of that Business in that particular hour.",
+  ];
+
   return (
     <>
       <svg
@@ -269,6 +278,12 @@ function Radar() {
         width={svgDimention.width}
         height={svgDimention.height}
       ></svg>
+      {showHelpModal === true && (
+        <HelpModal
+          title="About Radar Graph"
+          descriptions={helpModalDescription}
+        />
+      )}
       <ProgressBlock color="primary" hide={hideProgressBlock} />
     </>
   );

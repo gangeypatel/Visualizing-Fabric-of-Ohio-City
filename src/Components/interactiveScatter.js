@@ -2,8 +2,9 @@ import { useEffect, useState, useContext } from "react";
 import { ParticipantsContext, DateTimeContext } from "../context";
 import axios from "axios";
 import ProgressBlock from "./progressBlock";
+import HelpModal from "./helpModal";
 
-function InteractiveScatter() {
+function InteractiveScatter({ showHelpModal = false }) {
   const activities = [
     "Transport",
     "AtHome",
@@ -381,6 +382,12 @@ function InteractiveScatter() {
       });
   }
 
+  const helpModalDescription = [
+    "This chart shows the activity of the participants in the selected date.",
+    "The color of the circle represents the activity of the participant.",
+    "It shows the location of the participant based on hour of the day. The time is updated in 1 hour interval and with that the location of the participant is updated.",
+  ];
+
   return (
     <>
       <svg
@@ -389,6 +396,12 @@ function InteractiveScatter() {
         height={svgDimention.height}
         className={`${hideProgressBlock ? "opacity-1" : "opacity-0"}`}
       ></svg>
+      {showHelpModal === true && (
+        <HelpModal
+          title="About Interactive Scatter Plot Chart"
+          descriptions={helpModalDescription}
+        />
+      )}
       <ProgressBlock hide={hideProgressBlock} color="secondary" />
     </>
   );

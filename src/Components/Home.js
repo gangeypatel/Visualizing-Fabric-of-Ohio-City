@@ -17,6 +17,7 @@ import Chord from "./chord";
 import Circular from "./circular";
 import InteractiveScatter from "./interactiveScatter";
 import BarGraph from "./barGraph";
+import { cloneElement } from "react";
 
 function Home() {
   const [selectedParticipants, setSelectedParticipants] = useState([]);
@@ -68,10 +69,13 @@ function Home() {
   }
 
   function changeFocusedChartComponent(component) {
-    // if (component.type.name !== "DensityMap")
     setRightPanelComponents(
       allPageComponents.filter((c) => c.type.name !== component.type.name)
     );
+
+    component = cloneElement(component, {
+      showHelpModal: true,
+    });
 
     setFocusedChartComponent(component);
   }

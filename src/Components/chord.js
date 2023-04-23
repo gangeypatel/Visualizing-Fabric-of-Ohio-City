@@ -2,8 +2,9 @@ import { useEffect, useState, useContext } from "react";
 import { ParticipantsContext, DateTimeContext } from "../context";
 import axios from "axios";
 import ProgressBlock from "./progressBlock";
+import HelpModal from "./helpModal";
 
-function Chord() {
+function Chord({ showHelpModal = false }) {
   const [svgDimention, setSvgDimention] = useState({
     width: null,
     height: null,
@@ -29,11 +30,11 @@ function Chord() {
     )
       return;
     (async () => {
-      const rawJsonData = await fetchParticipantConnections(
-        makeQuery(date, participants)
-      );
+      const query = makeQuery(date, participants);
+      const rawJsonData = await fetchParticipantConnections(query);
+      const selectedParticipantsIdSet = new Set(query.split("&").splice(1));
       const data = restructureData(rawJsonData);
-      drawChordChart(data);
+      drawChordChart(data, selectedParticipantsIdSet);
       setHideProgressBlock(true);
     })();
   }, [participants, svgDimention]);
@@ -68,7 +69,7 @@ function Chord() {
     });
   }
 
-  function drawChordChart(data) {
+  function drawChordChart(data, selectedParticipantsIdSet) {
     const svg = d3
       .select("#chord_svg")
       .attr("width", svgDimention.width)
@@ -155,7 +156,13 @@ function Chord() {
         return svgDimention.height / 2 + RADIUS * Math.sin(theta(d.name));
       })
       .attr("r", "5")
-      .style("fill", "green")
+      .style("fill", (d) => {
+        if (selectedParticipantsIdSet.has(d.id)) {
+          return "#9c27b0";
+        } else {
+          return "grey";
+        }
+      })
       .attr("stroke", "white")
       .attr("class", "chord_nodes")
       .attr("id", (d) => "chord_node_" + d.name);
@@ -197,7 +204,7 @@ function Chord() {
           }) rotate(${(theta(d.name) * 180) / Math.PI})`;
         }
       })
-      .style("font-size", 8);
+      .style("font-size", 12);
 
     nodes
       .on("mouseover", function (d, i) {
@@ -340,6 +347,12 @@ function Chord() {
     return tempDict;
   }
 
+  const helpModalDescription = [
+    "This chart shows the interactions between selected participants from lasso in the selected day",
+    "You can hover over the nodes to see the participants and their interactions with other participants",
+    "The nodes colored in pink are the selected participants and the nodes colored in grey are the participants that interacted with the selected participants",
+  ];
+
   return (
     <>
       <svg
@@ -347,6 +360,12 @@ function Chord() {
         width={svgDimention.width}
         height={svgDimention.height}
       ></svg>
+      {showHelpModal === true && (
+        <HelpModal
+          title="About Chord Chart"
+          descriptions={helpModalDescription}
+        />
+      )}
       <ProgressBlock color="primary" hide={hideProgressBlock} />
     </>
   );
