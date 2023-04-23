@@ -256,51 +256,67 @@ function InteractiveScatter({ showHelpModal = false }) {
             .style("fill", (d) => color(d.currentmode)),
         (exit) => exit.remove()
       );
-			
-			const activityCount = categoryCounter(data);
-			const totalCount = data.length;
 
-			const labels = svg.selectAll(".int_labels").data(activityCount);
+      const activityCount = categoryCounter(data);
+      const totalCount = data.length;
 
-			labels.join(
-				enter => enter.append("text")
-											.attr("class", "int_labels")
-											.text((d, i) => {
-												return (d*100/totalCount).toFixed(2) + "%";
-											})
-											.attr("transform", (d, i) => {
-												if(activities[i] == "Transport") {
-													return `translate(${
-														svgDimention.width / 2
-													}, ${svgDimention.height / 2 + 25})`;
-												} else {
-													const angle = (theta(activities[i]) * 180) / Math.PI;
-													if (angle > 90 && angle < 270) {
-														return `translate(${
-															svgDimention.width / 2 +
-															(RADIUS + RADIUS / 5) * Math.cos(theta(activities[i])) * 0.98
-														}, ${
-															svgDimention.height / 2 +
-															(RADIUS + RADIUS / 7) * Math.sin(theta(activities[i])) * 0.98 + 25
-														})`;
-													} else {
-														return `translate(${
-															svgDimention.width / 2 +
-															(RADIUS + RADIUS / 5) * Math.cos(theta(activities[i])) * 0.98
-														}, ${
-															svgDimention.height / 2 +
-															(RADIUS + RADIUS / 7) * Math.sin(theta(activities[i])) * 0.98 + + 25
-														})`;
-													}
-												}
-											}),
+      const labels = svg.selectAll(".int_labels").data(activityCount);
 
-				update => update.text((d, i) => {
-													return (d*100/totalCount).toFixed(2) + "%";
-												}),
+      labels.join(
+        (enter) =>
+          enter
+            .append("text")
+            .attr("class", "int_labels")
+            .text((d, i) => {
+              return ((d * 100) / totalCount).toFixed(2) + "%";
+            })
+            .attr("transform", function (d, i) {
+              if (activities[i] == "Transport") {
+                return `translate(${
+                  svgDimention.width / 2 -
+                  this.getBoundingClientRect().width / 2
+                }, ${svgDimention.height / 2 + 25})`;
+              } else {
+                const angle = (theta(activities[i]) * 180) / Math.PI;
+                if (angle > 90 && angle < 270) {
+                  return `translate(${
+                    svgDimention.width / 2 -
+                    this.getBoundingClientRect().width / 2 +
+                    (RADIUS + RADIUS / 5) *
+                      Math.cos(theta(activities[i])) *
+                      0.98
+                  }, ${
+                    svgDimention.height / 2 +
+                    (RADIUS + RADIUS / 7) *
+                      Math.sin(theta(activities[i])) *
+                      0.98 +
+                    25
+                  })`;
+                } else {
+                  return `translate(${
+                    svgDimention.width / 2 -
+                    this.getBoundingClientRect().width / 2 +
+                    (RADIUS + RADIUS / 5) *
+                      Math.cos(theta(activities[i])) *
+                      0.98
+                  }, ${
+                    svgDimention.height / 2 +
+                    (RADIUS + RADIUS / 7) *
+                      Math.sin(theta(activities[i])) *
+                      0.98 +
+                    +25
+                  })`;
+                }
+              }
+            }),
 
-				exit => exit.remove()
-			);
+        (update) =>
+          update.text((d, i) => {
+            return ((d * 100) / totalCount).toFixed(2) + "%";
+          }),
+
+        (exit) => exit.remove()
+      );
 
       simulation.nodes(data).on("tick", ticked);
       simulation.alpha(0.9).restart();

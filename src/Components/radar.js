@@ -269,6 +269,7 @@ function Radar({ showHelpModal = false }) {
     "Here, the data is represented in the form of a polygon with vertices corresponding to the variables.",
     "Each variable (Hour) is plotted on a separate axis that starts from the center of the graph.",
     "The ploygon colored in pink represents the <span class='font-bold'>Spending</span> of that Business in that particular hour.",
+    "Hover over the axis to see the total spending by selected business in that hour.",
   ];
 
   return (
