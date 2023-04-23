@@ -268,7 +268,7 @@ function Radar({ showHelpModal = false }) {
     "Radar graph is a graphical method of displaying multivariate data in the form of a two-dimensional chart of three or more quantitative variables represented on axes starting from the same point.",
     "Here, the data is represented in the form of a polygon with vertices corresponding to the variables.",
     "Each variable (Hour) is plotted on a separate axis that starts from the center of the graph.",
-    "The ploygon colored in pink represents the <span class='font-bold'>Spending</span> of that Business in that particular hour.",
+    "The polygon colored in pink represents the <span class='font-bold'>Spending</span> of that Business in that particular hour.",
     "Hover over the axis to see the total spending by selected business in that hour.",
   ];
 
