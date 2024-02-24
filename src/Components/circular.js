@@ -141,7 +141,7 @@ function Circular({ setPageTo = () => {}, showHelpModal = false }) {
       setPageTo(3);
       earningsAndVisitorContext.setVisitorsAndEarnings([]);
       const result = await axios
-        .get("http://127.0.0.1:8002/barchart/" + date + "&" + businessId)
+        .get(`${process.env.REACT_APP_SERVER_URL}/barchart/` + date + "&" + businessId)
         .then((d) => {
           return d.data;
         });

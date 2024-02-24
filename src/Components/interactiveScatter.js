@@ -430,7 +430,7 @@ function InteractiveScatter({ showHelpModal = false }) {
 
   async function fetchParticipantConnections(query) {
     return await axios
-      .get("http://127.0.0.1:8002/activity/" + query, {
+      .get(`${process.env.REACT_APP_SERVER_URL}/activity/` + query, {
         headers: {
           "Access-Control-Allow-Origin": "*",
         },

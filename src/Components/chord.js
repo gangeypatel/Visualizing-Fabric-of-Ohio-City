@@ -41,7 +41,7 @@ function Chord({ showHelpModal = false }) {
 
   async function fetchParticipantConnections(query) {
     return await axios
-      .get("http://127.0.0.1:8002/social_network/" + query, {
+      .get(`${process.env.REACT_APP_SERVER_URL}/social_network/` + query, {
         headers: {
           "Access-Control-Allow-Origin": "*",
         },

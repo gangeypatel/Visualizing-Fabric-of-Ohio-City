@@ -100,7 +100,7 @@ function DensityMap({ showHelpModal = false }) {
     const date = dateTime.split(" ")[0];
     const time = dateTime.split(" ")[1];
     return await axios
-      .get("http://127.0.0.1:8002/heatmap/" + date + "&" + time, {
+      .get(`${process.env.REACT_APP_SERVER_URL}/heatmap/` + date + "&" + time, {
         headers: {
           "Access-Control-Allow-Origin": "*",
         },
