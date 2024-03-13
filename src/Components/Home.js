@@ -22,7 +22,7 @@ import { cloneElement } from "react";
 function Home() {
   const [selectedParticipants, setSelectedParticipants] = useState([]);
   const [selectedBuildings, setSelectedBuildings] = useState([]);
-  const [dateTime, setDateTime] = useState("2022-03-01 17");
+  const [dateTime, setDateTime] = useState("2023-03-01 17");
   const [visitorsAndEarnings, setVisitorsAndEarnings] = useState([]);
   const [rightPanelComponents, setRightPanelComponents] = useState([]);
 

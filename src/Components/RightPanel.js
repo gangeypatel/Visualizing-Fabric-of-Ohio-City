@@ -7,7 +7,6 @@ import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import {
   DateTimeContext,
-  EarningsAndVisitorsContext,
   ParticipantsContext,
 } from "../context";
 import { useContext } from "react";
@@ -20,8 +19,6 @@ import { blueGrey } from "@mui/material/colors";
 import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import Radar from "./radar";
-import Alert from "@mui/material/Alert";
-import AlertTitle from "@mui/material/AlertTitle";
 
 export default function RightPanel({
   setPageTo = () => {},
@@ -50,7 +47,7 @@ export default function RightPanel({
 
   function shouldDisableDate(date) {
     return (
-      date.isBefore(dayjs("2022-03-01")) || date.isAfter(dayjs("2023-05-22"))
+      date.isBefore(dayjs("2023-03-01")) || date.isAfter(dayjs("2023-04-30"))
     );
   }
 
