@@ -26,7 +26,7 @@ export default function LeftPanel() {
     }
 
     function shouldDisableDate(date) {
-        return date.isBefore(dayjs("2022-03-01")) || date.isAfter(dayjs("2023-05-22"));
+        return date.isBefore(dayjs("2022-03-01")) || date.isAfter(dayjs("2023-05-01"));
     }
 
     return (
