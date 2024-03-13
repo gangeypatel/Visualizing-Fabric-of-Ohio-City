@@ -100,10 +100,14 @@ function DensityMap({ showHelpModal = false }) {
     const date = dateTime.split(" ")[0];
     const time = dateTime.split(" ")[1];
     return await axios
-      .get(`${process.env.REACT_APP_SERVER_URL}/heatmap/` + date + "&" + time, {
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-        },
+      .post(`${process.env.REACT_APP_SERVER_URL}/heatmap`, {
+        // body: {
+            "date": "2023-03-01",
+            "hour": "0"
+        // },
+        // headers: {
+        //   "Access-Control-Allow-Origin": "*",
+        // },
       })
       .then((d) => {
         return d.data;
