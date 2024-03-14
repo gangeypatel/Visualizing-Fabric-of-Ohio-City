@@ -141,7 +141,10 @@ function Circular({ setPageTo = () => {}, showHelpModal = false }) {
       setPageTo(3);
       earningsAndVisitorContext.setVisitorsAndEarnings([]);
       const result = await axios
-        .get(`${process.env.REACT_APP_SERVER_URL}/barchart/` + date + "&" + businessId)
+        .post(`${process.env.REACT_APP_SERVER_URL}/barchart`, {
+          "venueid": businessId,
+          "date": date
+        })
         .then((d) => {
           return d.data;
         });

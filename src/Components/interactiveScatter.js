@@ -410,11 +410,15 @@ function InteractiveScatter({ showHelpModal = false }) {
   }
 
   function makeQuery(date, participants) {
-    let query = date;
-    participants.forEach((participant) => {
-      query += "&" + participant.participantid;
-    });
+    // let query = date;
+    // participants.forEach((participant) => {
+    //   query += "&" + participant.participantid;
+    // });
 
+    // return query;
+    let query = {};
+    query.date = date;
+    query.participants = participants.map((participant) => participant.participantid);
     return query;
   }
 
@@ -430,10 +434,12 @@ function InteractiveScatter({ showHelpModal = false }) {
 
   async function fetchParticipantConnections(query) {
     return await axios
-      .get(`${process.env.REACT_APP_SERVER_URL}/activity/` + query, {
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-        },
+      .post(`${process.env.REACT_APP_SERVER_URL}/activity`, {
+        "date": query.date,
+        "participants": query.participants
+        // headers: {
+        //   "Access-Control-Allow-Origin": "*",
+        // },
       })
       .then((d) => {
         return d.data;
