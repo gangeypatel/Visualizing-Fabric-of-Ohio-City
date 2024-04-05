@@ -32,7 +32,7 @@ function Chord({ showHelpModal = false }) {
     (async () => {
       const query = makeQuery(date, participants);
       const rawJsonData = await fetchParticipantConnections(query);
-      const selectedParticipantsIdSet = new Set(query.split("&").splice(1));
+      const selectedParticipantsIdSet = new Set(query.participants);
       const data = restructureData(rawJsonData);
       drawChordChart(data, selectedParticipantsIdSet);
       setHideProgressBlock(true);
@@ -310,13 +310,6 @@ function Chord({ showHelpModal = false }) {
   }
 
   function makeQuery(date, participants) {
-    // let query = date;
-    // participants.forEach((participant) => {
-    //   query += "&" + participant.participantid;
-    // });
-
-    // return query;
-
     let query = {};
     query.date = date;
     query.participants = participants.map((participant) => participant.participantid);
