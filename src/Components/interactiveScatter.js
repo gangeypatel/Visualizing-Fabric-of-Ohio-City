@@ -410,12 +410,6 @@ function InteractiveScatter({ showHelpModal = false }) {
   }
 
   function makeQuery(date, participants) {
-    // let query = date;
-    // participants.forEach((participant) => {
-    //   query += "&" + participant.participantid;
-    // });
-
-    // return query;
     let query = {};
     query.date = date;
     query.participants = participants.map((participant) => participant.participantid);
@@ -424,12 +418,20 @@ function InteractiveScatter({ showHelpModal = false }) {
 
   function restructureData(data) {
     data.forEach((row) => {
-      row.forEach((elem) => {
-        elem["x"] = 0;
-        elem["y"] = 0;
-      });
+      row["x"] = 0;
+      row["y"] = 0;
     });
-    return data;
+
+    const updatedData = []
+    for(var i=0; i<24; i++)
+      updatedData.push([]);
+
+    data.forEach((row) => {
+      const timestamp = new Date(row.timestamp);
+      updatedData[timestamp.getHours()].push(row); 
+    });
+
+    return updatedData;
   }
 
   async function fetchParticipantConnections(query) {
